@@ -1,0 +1,28 @@
+<% include partials/header %>
+  <nav>
+    <a href=""><img src="../img/logoWhite.png" alt="logo"></a>
+    <div id="nav-rightside">
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="#">About</a></li>
+      </ul>
+
+      <a href="upload" id="uploadBtn">Upload Dataset</a>
+    </div>
+  </nav>
+
+  <div id="uploadForm">
+    <img src="../img/uploadicon.png">
+    <h1 class="title is-3">Drag and drop files here</h1>
+    <p>or</p>
+    <button type="button" class="button is-link is-normal" id="custom-button">Chose file</button> <span id=""></span>
+    <form ref="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+      <input type="file" name="csvFile" id="real-file" hidden="hidden">
+      <label for="file" class="custom-file-label"></label>
+      <input type="submit" value="upload">
+    </form>
+  </div>
+
+<script src="../js/upload.js"></script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+body {
+  background-image: url("../img/uploadBg.png");
+}
+
+
+#uploadForm {
+  width: 50%;
+  height: 500px;
+  margin: auto;
+  background-color: #F5F6FA;
+  opacity: ;
+  border-radius: 10px;
+  text-align: center;
+  margin-top: 80px;
+  padding-top: 80px;
+}
+
+#uploadForm img {
+  width: 110px;
+}
+
+#uploadForm h1 {
+  color: black;
+  font-size: 27px;
+
+}
+
+#uploadForm button {
+  margin-top: 30px;
+}

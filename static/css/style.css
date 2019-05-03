@@ -1,0 +1,96 @@
+html,body{height:100%;margin:0;padding:0}
+
+
+@font-face {
+  font-family: openSans;
+  src: url(../fonts/OpenSans-Regular.ttf);
+}
+
+#intro {
+  height:100%;
+  display:block;
+  background-image: url("../img/introBackground.jpg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+nav {
+  height: 1000px;
+  width: 100%;
+  display: inline;
+  padding-top: 200px;
+}
+
+nav img {
+  width: 250px;
+  padding-top: 20px;
+  padding-left: 60px;
+}
+
+nav ul {
+  display: inline;
+}
+
+nav ul li {
+  display: inline;
+  margin-right: 50px;
+}
+
+nav ul li a {
+  color: white;
+}
+
+nav ul li a:hover {
+  opacity: 0.8;
+  transition: 0.2s;
+}
+
+#uploadBtn {
+  background-color: Transparent;
+  background-repeat:no-repeat;
+  border: none;
+  cursor:pointer;
+  overflow: hidden;
+  outline:none;
+  border: 1.2px solid white;
+  border-radius: 20px;
+  padding: 13px;
+  color: white;
+  font-weight: bold;
+}
+
+nav button:hover {
+  background-color: white;
+  color: #5EBEF0;
+  transition: 0.6s;
+}
+
+#nav-rightside {
+  float: right;
+  margin-top: 30px;
+  margin-right: 80px;
+}
+
+#intro-text {
+  padding-top: 100px;
+  text-align: center;
+  height: 100%;
+  color: white;
+  margin: auto;
+  width: 50%;
+}
+
+#intro-text img {
+  width: 80px;
+  padding-bottom: 10px;
+}
+
+#intro-text h1 {
+  color: white;
+  font-family: openSans;
+}
+
+#intro-text p {
+  margin-top: 50px;
+}
