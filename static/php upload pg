@@ -1,0 +1,56 @@
+<html>
+    <head>
+        <title> PHP File Upload </title>
+    </head>
+    <body> 
+        <h1>This is a file upload website</h1>
+        <?php 
+        if (!file_exists('images')) {
+            mkdir('images', 0777, true);
+        }
+        print_r($_POST);
+        $img="";
+
+        if (isset($_FILES['userfile'])) {
+            pre_r($_FILES); 
+            move_uploaded_file($_FILES['userfile']['tmp_name'], 'images/'.
+                    $_FILES['userfile']['name']);
+            $image=$_FILES['userfile']['name'];
+            $img="images/".$image;
+            echo '<img id="myimg" src= "'.$img.'">';
+        }
+
+        if (isset($_POST['delete'])) {
+            if (file_exists($_POST['file'])){
+                unlink($_POST['file']);
+            }
+        }
+
+        function pre_r($array) {
+            echo '<pre>';
+            print_r($array);
+            echo '</pre>';
+        }
+        ?>
+        <form action="" method="POST" enctype="multipart/form-data">
+            <input type="file" name="userfile">
+            <input type="submit" name="upload" value="Upload">
+        </form>
+
+        <?php
+        echo '<form action="" method="POST">';
+        echo "    <input type=\"hidden\" name=\"file\" value=$img>";
+        echo "    <input type=\"submit\" name=\"delete\" value=\"Delete\">";
+        echo '</form>';
+        ?>
+        
+        <button onclick="hideImg()">Hide image</button>
+    </body>
+
+    <script>
+        function hideImg() {
+            var x = document.getElementById("myimg");
+            x.style.display = "none";
+        }
+    </script>
+</html>
