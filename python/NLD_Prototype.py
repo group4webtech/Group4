@@ -74,7 +74,7 @@ weights = []
 
 for row in df_ex.index.values:
     for column in df_ex.index.values:
-        if  (row < column) and (df_ex[row][column] > 0) and (df_ex[row][column] < 1):
+        if  (row < column) and (df_ex[row][column] > 0):
             g.add_edge(row,column, weight=df_ex[row][column])
             weights.append(df_ex[row][column])
 
