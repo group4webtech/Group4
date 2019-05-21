@@ -9,12 +9,14 @@ from bokeh.models.widgets import Tabs, Panel
 from bokeh.palettes import Spectral4
 from bokeh.plotting import figure, output_file, show
 import itertools
+from bs4 import BeautifulSoup
+from urllib.request import urlopen
 
 output_file('index.html')
 #plt.show()
 
 separator = ";"
-filename = ''
+filename = 'DBL.csv'
 
 # removes quotation marks at the end and start of each line (if necessary)
 with open(filename, 'r') as r, open('DBL_01.csv', 'w') as w:
@@ -58,7 +60,7 @@ with open('DBL_02.csv', 'r') as r, open('DBL_03.csv', 'w') as w:
         newline = newline.replace("_", " ")
         w.write(newline)
 
-df = pd.read_csv('DBL_03.cvs', sep=separator)     # full csv file with 1053x1053 values
+df = pd.read_csv('DBL_03.csv', sep=separator)     # full csv file with 1053x1053 values
 
 # get original column names from df
 list_columns_names = df.columns
@@ -114,7 +116,7 @@ pos = nx.circular_layout(g)
 
 output_file('index.html')
 
-plt.show()
+#plt.show()
 
 # plotting
 
@@ -205,3 +207,16 @@ tabs = Tabs(tabs=[circle_panel, spring_panel])
 
 # Show the tabbed layout
 show(tabs)
+
+# Fetch the html file
+response = urlopen('file:///C:/Users/Evgeni/AtomProjects/Bokeh%20example/index.html')
+html_output = response.read()
+
+# Parse the html file
+soup = BeautifulSoup(html_output, 'html.parser')
+
+# Format the parsed html file
+strhtm = soup.prettify()
+
+# Print the first few characters
+print (strhtm[:225])
