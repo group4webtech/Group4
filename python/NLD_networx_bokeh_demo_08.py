@@ -125,10 +125,10 @@ output_file('index.html')
 # plotting
 
 # circular layout
-plot_circle = Plot(plot_width=1000, plot_height=1000,
+plot_circle = Plot(plot_width=1000, plot_height=715,
             x_range=Range1d(-1.1, 1.1), y_range=Range1d(-1.1, 1.1))
 
-graph_circle = from_networkx(g, nx.circular_layout, scale=2, center=(0,0))
+graph_circle = from_networkx(g, nx.circular_layout, scale=0.9, center=(0,0))
 
 # !!! Specify colors with node attributes !!!
 graph_circle.node_renderer.glyph = Circle(size=15,  fill_color='green')
@@ -162,10 +162,10 @@ plot_circle.add_tools(BoxSelectTool())
 plot_circle.renderers.append(graph_circle)
 
 # spring layout
-plot_spring = Plot(plot_width=1000, plot_height=1000,
+plot_spring = Plot(plot_width=1000, plot_height=715,
             x_range=Range1d(-1.1, 1.1), y_range=Range1d(-1.1, 1.1))
 
-graph_spring = from_networkx(g, nx.spring_layout, scale=2, center=(0,0))
+graph_spring = from_networkx(g, nx.spring_layout, scale=0.9, center=(0,0))
 
 # !!! Specify colors with node attributes !!!
 graph_spring.node_renderer.glyph = Circle(size=15, fill_color='green')
