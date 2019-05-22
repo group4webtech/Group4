@@ -128,18 +128,18 @@ output_file('index.html')
 plot_circle = Plot(plot_width=1000, plot_height=715,
             x_range=Range1d(-1.1, 1.1), y_range=Range1d(-1.1, 1.1))
 
-graph_circle = from_networkx(g, nx.circular_layout, scale=0.9, center=(0,0))
+graph_circle = from_networkx(g, nx.circular_layout, scale=1, center=(0,0))
 
 # !!! Specify colors with node attributes !!!
-graph_circle.node_renderer.glyph = Circle(size=15,  fill_color='green')
+graph_circle.node_renderer.glyph = Circle(size=15,  fill_color='royalblue')
 graph_circle.node_renderer.selection_glyph = Circle(size=15, fill_color='red')
-graph_circle.node_renderer.hover_glyph = Circle(size=15, fill_color='blue')
+graph_circle.node_renderer.hover_glyph = Circle(size=15, fill_color='green')
 graph_circle.node_renderer.data_source.data['degree'] = list(zip(*g.degree))[1]
 #graph_circle.node_renderer.data_source.data['colors'] = Spectral8
 
-graph_circle.edge_renderer.glyph = MultiLine(line_color='#CCCCCC', line_alpha=0.8, line_width=3)
+graph_circle.edge_renderer.glyph = MultiLine(line_color='lightskyblue', line_alpha=0.8, line_width=3)
 graph_circle.edge_renderer.selection_glyph = MultiLine(line_color='red', line_width=5)
-graph_circle.edge_renderer.hover_glyph = MultiLine(line_color='blue', line_width=5)
+graph_circle.edge_renderer.hover_glyph = MultiLine(line_color='green', line_width=5)
 graph_circle.edge_renderer.data_source.data['weight'] = weights
 graph_circle.edge_renderer.glyph.line_width = {'field': 'weight'}
 graph_circle.edge_renderer.data_source.data['color'] =  colors
@@ -165,18 +165,18 @@ plot_circle.renderers.append(graph_circle)
 plot_spring = Plot(plot_width=1000, plot_height=715,
             x_range=Range1d(-1.1, 1.1), y_range=Range1d(-1.1, 1.1))
 
-graph_spring = from_networkx(g, nx.spring_layout, scale=0.9, center=(0,0))
+graph_spring = from_networkx(g, nx.spring_layout, scale=1, center=(0,0))
 
 # !!! Specify colors with node attributes !!!
-graph_spring.node_renderer.glyph = Circle(size=15, fill_color='green')
+graph_spring.node_renderer.glyph = Circle(size=15, fill_color='royalblue')
 graph_spring.node_renderer.selection_glyph = Circle(size=15, fill_color='red')
-graph_spring.node_renderer.hover_glyph = Circle(size=15, fill_color='blue')
+graph_spring.node_renderer.hover_glyph = Circle(size=15, fill_color='green')
 graph_spring.node_renderer.data_source.data['degree'] = list(zip(*g.degree))[1]
 #graph_spring.node_renderer.data_source.data['colors'] = Spectral8
 
-graph_spring.edge_renderer.glyph = MultiLine(line_color='#CCCCCC', line_alpha=0.8, line_width=3)
+graph_spring.edge_renderer.glyph = MultiLine(line_color='lightskyblue', line_alpha=0.8, line_width=3)
 graph_spring.edge_renderer.selection_glyph = MultiLine(line_color='red', line_width=5)
-graph_spring.edge_renderer.hover_glyph = MultiLine(line_color='blue', line_width=5)
+graph_spring.edge_renderer.hover_glyph = MultiLine(line_color='green', line_width=5)
 graph_spring.edge_renderer.data_source.data['weight'] = weights
 graph_spring.edge_renderer.glyph.line_width = {'field': 'weight'}
 
