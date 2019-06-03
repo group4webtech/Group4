@@ -64,7 +64,8 @@ with open(filename + '_02' + fileext, 'r') as r, open(filename + '_03' + fileext
 df = pd.read_csv(filename + '_03' + fileext, sep=separator)     # full csv file with 1053x1053 values
 
 # dataframe for AM
-df_new = df.loc["Jim Thomas":"James Landay", "Jim Thomas":"James Landay"]
+#df_new = df.loc["Jim Thomas":"James Landay", "Jim Thomas":"James Landay"]
+df_new = df
 max_value = df_new.values.max()
 min_value = df_new.values.min()
 values = df_new.values
@@ -92,9 +93,7 @@ data=dict(xname=xname, yname=yname, count=counts, alphas=alpha,)
 p = figure(title="Matrix Author Similarity", x_axis_location="above", x_range=list(reversed(names1)), y_range=names1)
 hover_am = HoverTool(tooltips = [('Names', '@yname, @xname'), ('Value', '@count')])
 p.add_tools(hover_am)
-p.add_tools(BoxSelectTool(dimensions=["width", 'height']))
-p.plot_width = 1000
-p.plot_height = 1000
+p.add_tools(BoxSelectTool())
 p.grid.grid_line_color = None
 p.axis.axis_line_color = None
 p.axis.major_tick_line_color = None
@@ -112,9 +111,7 @@ data1=dict(xname=xname, yname=yname, count=counts)
 
 plot = figure(title="Matrix Author Similarity", x_axis_location="above", x_range=list(reversed(names1)), y_range=names1, toolbar_location = 'below')
 plot.add_tools(hover_am)
-plot.add_tools(BoxSelectTool(dimensions=["width", 'height']))
-plot.plot_width = 1000
-plot.plot_height = 1000
+plot.add_tools(BoxSelectTool())
 plot.grid.grid_line_color = None
 plot.axis.axis_line_color = None
 plot.axis.major_tick_line_color = None
@@ -122,14 +119,19 @@ plot.axis.major_label_text_font_size = "5pt"
 plot.axis.major_label_standoff = 0
 plot.xaxis.major_label_orientation = np.pi/3
 
-plot.rect('xname', 'yname', 0.9, 0.9, source=data1, line_color=None,
-       hover_line_color='black', fill_color={'field': 'count', 'transform': mapper})
+plot.rect('xname', 'yname', 0.9, 0.9, source=data1, line_color=None, hover_line_color='black', fill_color={'field': 'count', 'transform': mapper})
 plot.add_layout(color_bar, 'right')
 
 alpha_panel = Panel(child = p, title = 'Alpha model')
 color_panel = Panel(child = plot, title = 'Color model')
 
+tabs1 = Tabs(tabs=[alpha_panel, color_panel])
 # # END OF AM # #
+
+
+
+
+
 
 # get original column names from df
 list_columns_names = df.columns
@@ -212,9 +214,9 @@ graph_circle.edge_renderer.glyph = MultiLine(line_color='lightskyblue', line_alp
 graph_circle.edge_renderer.selection_glyph = MultiLine(line_color='red', line_width=5)
 graph_circle.edge_renderer.hover_glyph = MultiLine(line_color='green', line_width=5)
 graph_circle.edge_renderer.data_source.data['weight'] = weights
-#graph_circle.edge_renderer.glyph.line_width = {'field': 'weight'}
-graph_circle.edge_renderer.data_source.data['color'] =  list_color
-graph_circle.edge_renderer.glyph.line_color = {'field': 'weight'}
+graph_circle.edge_renderer.glyph.line_width = {'field': 'weight'}
+#graph_circle.edge_renderer.data_source.data['color'] =  color
+#graph_circle.edge_renderer.glyph.line_color = {'field': 'weight'}
 
 graph_circle.selection_policy = NodesAndLinkedEdges()
 graph_circle.inspection_policy = NodesAndLinkedEdges()
@@ -281,11 +283,11 @@ circle_panel = Panel(child=plot_circle, title='Circle layout')
 spring_panel = Panel(child=plot_spring, title='Spring layout')
 
 # Assign the panels to Tabs
-tabs = Tabs(tabs=[circle_panel, spring_panel, alpha_panel, color_panel])
-
+tabs = Tabs(tabs=[circle_panel, spring_panel])
+p = gridplot([[tabs, tabs1]])
 # Preview and save
 #show(fig)
 #show(fig1)
 
 # Show the tabbed layout
-show(tabs)
+show(p)
