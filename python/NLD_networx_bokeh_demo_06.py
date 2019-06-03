@@ -2,16 +2,13 @@ import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
 from bokeh.io import show, output_notebook
-from bokeh.models import Plot, Range1d, MultiLine, Circle, HoverTool, TapTool, BoxSelectTool, WheelZoomTool, ResetTool, PanTool, SaveTool, BoxSelectTool
+from bokeh.models import Plot, Range1d, MultiLine, Circle, HoverTool, TapTool, BoxSelectTool, WheelZoomTool, ResetTool, PanTool, SaveTool, BoxSelectTool, LassoSelectTool
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges, EdgesAndLinkedNodes
 from bokeh.models.sources import ColumnDataSource, CDSView
 from bokeh.models.widgets import Tabs, Panel
-from bokeh.palettes import Spectral4
+from bokeh.palettes import Spectral4, Spectral8
 from bokeh.plotting import figure, output_file, show
 import itertools
-
-output_file('index.html')
-#plt.show()
 
 separator = ";"
 filename = 'DBL'
@@ -96,6 +93,10 @@ for row in df.index.values:
 
 #list_columns_names
 
+colors = []
+for n in weights:
+    colors.append(10000 / n)
+
 # create a dictoinary with double for loop
 mapping = {old_label:new_label for old_label, new_label in itertools.zip_longest(sorted(g.nodes()), list_columns_names, fillvalue=1)}
 #print(mapping)
@@ -115,35 +116,35 @@ pos = nx.circular_layout(g)
 
 output_file('index.html')
 
-plt.show()
-
 # plotting
 
 # circular layout
-plot_circle = Plot(plot_width=1000, plot_height=1000,
+plot_circle = Plot(plot_width=1000, plot_height=715,
             x_range=Range1d(-1.1, 1.1), y_range=Range1d(-1.1, 1.1))
 
-graph_circle = from_networkx(g, nx.circular_layout, scale=2, center=(0,0))
+graph_circle = from_networkx(g, nx.circular_layout, scale=1, center=(0,0))
 
 # !!! Specify colors with node attributes !!!
-graph_circle.node_renderer.glyph = Circle(size=15, fill_color='green')
+graph_circle.node_renderer.glyph = Circle(size=15,  fill_color='royalblue')
 graph_circle.node_renderer.selection_glyph = Circle(size=15, fill_color='red')
-graph_circle.node_renderer.hover_glyph = Circle(size=15, fill_color='blue')
+graph_circle.node_renderer.hover_glyph = Circle(size=15, fill_color='green')
+graph_circle.node_renderer.data_source.data['degree'] = list(zip(*g.degree))[1]
+#graph_circle.node_renderer.data_source.data['colors'] = Spectral8
 
-graph_circle.edge_renderer.glyph = MultiLine(line_color="#CCCCCC", line_alpha=0.8, line_width=3)
+graph_circle.edge_renderer.glyph = MultiLine(line_color='lightskyblue', line_alpha=0.8, line_width=3)
 graph_circle.edge_renderer.selection_glyph = MultiLine(line_color='red', line_width=5)
-graph_circle.edge_renderer.hover_glyph = MultiLine(line_color='blue', line_width=5)
+graph_circle.edge_renderer.hover_glyph = MultiLine(line_color='green', line_width=5)
+graph_circle.edge_renderer.data_source.data['weight'] = weights
+#graph_circle.edge_renderer.glyph.line_width = {'field': 'weight'}
+graph_circle.edge_renderer.data_source.data['color'] =  weights
+graph_circle.edge_renderer.glyph.line_color = {'field': 'weight'}
 
 graph_circle.selection_policy = NodesAndLinkedEdges()
 graph_circle.inspection_policy = NodesAndLinkedEdges()
 
-#graph_circle.node_renderer.data_source.data['index'] = list_columns_names
-
 # !!! Hover the node attributes !!!
-node_hover = HoverTool(tooltips=[('Name', '@index')])
-#node_hover = HoverTool(tooltips=[('Name', '@name'),
-#                                 ('Tag', '@tag'),
-#                                 ('Status','@status')],)
+node_hover = HoverTool(tooltips=[('Name', '@index'), ('Degree', '@degree')])
+
 plot_circle.add_tools(node_hover)
 plot_circle.add_tools(WheelZoomTool())
 plot_circle.add_tools(ResetTool())
@@ -151,28 +152,31 @@ plot_circle.add_tools(PanTool())
 plot_circle.add_tools(TapTool())
 plot_circle.add_tools(SaveTool())
 plot_circle.add_tools(BoxSelectTool())
+plot_circle.add_tools(LassoSelectTool())
 
 plot_circle.renderers.append(graph_circle)
 
 # spring layout
-plot_spring = Plot(plot_width=1000, plot_height=1000,
+plot_spring = Plot(plot_width=1000, plot_height=715,
             x_range=Range1d(-1.1, 1.1), y_range=Range1d(-1.1, 1.1))
 
-graph_spring = from_networkx(g, nx.spring_layout, scale=2, center=(0,0))
+graph_spring = from_networkx(g, nx.spring_layout, scale=1, center=(0,0))
 
 # !!! Specify colors with node attributes !!!
-graph_spring.node_renderer.glyph = Circle(size=15, fill_color='green')
+graph_spring.node_renderer.glyph = Circle(size=15, fill_color='royalblue')
 graph_spring.node_renderer.selection_glyph = Circle(size=15, fill_color='red')
-graph_spring.node_renderer.hover_glyph = Circle(size=15, fill_color='blue')
+graph_spring.node_renderer.hover_glyph = Circle(size=15, fill_color='green')
+graph_spring.node_renderer.data_source.data['degree'] = list(zip(*g.degree))[1]
+#graph_spring.node_renderer.data_source.data['colors'] = Spectral8
 
-graph_spring.edge_renderer.glyph = MultiLine(line_color="#CCCCCC", line_alpha=0.8, line_width=3)
+graph_spring.edge_renderer.glyph = MultiLine(line_color='lightskyblue', line_alpha=0.8, line_width=3)
 graph_spring.edge_renderer.selection_glyph = MultiLine(line_color='red', line_width=5)
-graph_spring.edge_renderer.hover_glyph = MultiLine(line_color='blue', line_width=5)
+graph_spring.edge_renderer.hover_glyph = MultiLine(line_color='green', line_width=5)
+graph_spring.edge_renderer.data_source.data['weight'] = weights
+graph_spring.edge_renderer.glyph.line_width = {'field': 'weight'}
 
 graph_spring.selection_policy = NodesAndLinkedEdges()
 graph_spring.inspection_policy = NodesAndLinkedEdges()
-
-#graph_spring.node_renderer.data_source.data['name'] = list_columns_names
 
 # !!! Hover the node attributes !!!
 plot_spring.add_tools(node_hover)
@@ -182,12 +186,13 @@ plot_spring.add_tools(PanTool())
 plot_spring.add_tools(TapTool())
 plot_spring.add_tools(SaveTool())
 plot_spring.add_tools(BoxSelectTool())
+plot_spring.add_tools(LassoSelectTool())
+
 
 plot_spring.renderers.append(graph_spring)
 
 #output_notebook()
 #show(plot)
-
 
 # Put the legend in the upper left corner
 #plot_spring.legend.location = 'top_left'
@@ -206,4 +211,5 @@ tabs = Tabs(tabs=[circle_panel, spring_panel])
 #show(fig1)
 
 # Show the tabbed layout
-show(tabs)
+#show(tabs)
+print(df.head())
