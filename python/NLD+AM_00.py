@@ -15,10 +15,35 @@ import itertools
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 
+import sys, json
+
+
 output_file('index.html')
 
 separator = ";"
 filename = ''
+
+#Read data from stdin OSCAR
+def read_in():
+    lines = sys.stdin.readlines()
+    # Since our input would only be having one line, parse our JSON data from that
+    return json.loads(lines[0])
+
+def main():
+    global filename
+    #get our data as an array from read_in()
+    lines = read_in()
+
+    # Sum  of all the items in the providen array
+    total_sum_inArray = 0
+    filename = "./upload/" + lines[0]
+    print(filename)
+    #return the sum to the output stream
+
+# Start process OSCAR
+if __name__ == '__main__':
+    main()
+
 
 # removes quotation marks at the end and start of each line (if necessary)
 with open(filename, 'r') as r, open('DBL_01.csv', 'w') as w:
@@ -64,15 +89,14 @@ with open('DBL_02.csv', 'r') as r, open('DBL_03.csv', 'w') as w:
 
 df = pd.read_csv('DBL_03.csv', sep=separator)     # full csv file with 1053x1053 values
 # dataframe for AM
-df_new = df.loc["Jim Thomas":"James Landay", "Jim Thomas":"James Landay"]
 #df_new = df
-max_value = df_new.values.max()
-min_value = df_new.values.min()
-values = df_new.values
+max_value = df.values.max()
+min_value = df.values.min()
+values = df.values
 
 counts = values.astype(float)
-names = df_new.index.values.tolist()
-names1 = df_new.index.values.tolist()
+names = df.index.values.tolist()
+names1 = df.index.values.tolist()
 names.extend(names1 * (len(names1) - 1))
 
 def duplicate(names1, n):
@@ -190,7 +214,7 @@ pos = nx.circular_layout(g)
 
 output_file('index.html')
 
-plt.show()
+#plt.show()
 
 # plotting
 
@@ -298,6 +322,12 @@ soup = BeautifulSoup(html_output, 'html.parser')
 
 # Format the parsed html file
 strhtm = soup.prettify()
+
+f = open('views/graphs' + '.ejs','w')
+
+message = """{strhtm}
+""".format(strhtm=strhtm)
+
 
 # Print the first few characters
 #print (strhtm[:225])
