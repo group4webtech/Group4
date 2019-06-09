@@ -3,12 +3,12 @@ import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
 from bokeh.io import output_file, output_notebook, show
-from bokeh.models import ColumnDataSource, LinearColorMapper, ColorBar, LogTicker, Plot, Range1d, MultiLine, Circle, HoverTool, TapTool, BoxSelectTool, WheelZoomTool, ResetTool, ZoomOutTool, ZoomInTool, PanTool, SaveTool, BoxSelectTool, LassoSelectTool
+from bokeh.models import ColumnDataSource, LinearColorMapper, ColorBar, LogTicker, Plot, Range1d, MultiLine, Circle, HoverTool, TapTool, BoxSelectTool, WheelZoomTool, ResetTool, UndoTool, RedoTool, ZoomOutTool, ZoomInTool, PanTool, SaveTool, BoxSelectTool, LassoSelectTool
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges, EdgesAndLinkedNodes
 from bokeh.models.sources import ColumnDataSource, CDSView
 from bokeh.layouts import row, column, gridplot
 from bokeh.models.widgets import Tabs, Panel, MultiSelect, Select
-from bokeh.palettes import Spectral4, Spectral8, Viridis6
+from bokeh.palettes import Spectral4, Spectral8, Viridis6, Viridis11
 from bokeh.plotting import figure, output_file, show
 import itertools
 
@@ -123,16 +123,17 @@ def AM_processing(df_new):
 
     hover_am = HoverTool(tooltips = [('Names', '@yname, @xname'), ('Value', '@count')])
 
-    # alpha matrix
-    plot_alpha = AM_processing_plot(names2, source, hover_am)
-    plot_alpha.rect('xname', 'yname', 0.9, 0.9, source=source, line_color=None, hover_line_color='black', alpha = 'alphas')
-
     # color matrix
-    mapper = LinearColorMapper(palette=Viridis6, low=min_value, high=max_value)
+    color_palette = list(reversed(Viridis11[:8]))
+    mapper = LinearColorMapper(palette=color_palette, low=min_value, high=max_value)
     color_bar = ColorBar(color_mapper = mapper, border_line_color = None, location = (0,0))
     plot_color = AM_processing_plot(names2, source, hover_am)
     plot_color.rect('xname', 'yname', 0.9, 0.9, source=source, line_color=None, hover_line_color='black', fill_color={'field': 'count', 'transform': mapper})
     plot_color.add_layout(color_bar, 'right')
+
+    # alpha matrix
+    plot_alpha = AM_processing_plot(names2, source, hover_am)
+    plot_alpha.rect('xname', 'yname', 0.9, 0.9, source=source, line_color=None, hover_line_color='black', alpha = 'alphas')
 
     alpha_panel = Panel(child = plot_alpha, title = 'Alpha model')
     color_panel = Panel(child = plot_color, title = 'Color model')
@@ -145,23 +146,24 @@ def AM_processing(df_new):
 ###############################################################################
 #   NLD_processing_graph
 ###############################################################################
-def NLD_pocessing_graph(g, weights, layout):
+def NLD_pocessing_graph(g, weights, colors, layout):
     graph = from_networkx(g, layout, scale=1, center=(0,0))
 
     # nodes and egdes attributes
     graph.node_renderer.data_source.data['degree'] = list(zip(*g.degree))[1]
     graph.edge_renderer.data_source.data['weight'] = weights
+    graph.edge_renderer.data_source.add(colors, 'color')
 
-    graph.node_renderer.glyph            = Circle(size=15, fill_alpha=0.8, fill_color='royalblue')
-    graph.node_renderer.selection_glyph  = Circle(size=15, fill_alpha=0.8, fill_color='red')
-    graph.node_renderer.hover_glyph      = Circle(size=15, fill_alpha=0.8, fill_color='green')
+    graph.node_renderer.glyph            = Circle(size=10, fill_alpha=0.8, fill_color='royalblue')
+    graph.node_renderer.selection_glyph  = Circle(size=10, fill_alpha=0.8, fill_color='red')
+    graph.node_renderer.hover_glyph      = Circle(size=10, fill_alpha=0.8, fill_color='yellow')
 #    graph.node_renderer.glyph.color      = {'field': ''}
 
-    graph.edge_renderer.glyph            = MultiLine(line_width=3, line_alpha=0.8, line_color='lightskyblue')
+    graph.edge_renderer.glyph            = MultiLine(line_width=3, line_alpha=0.8, line_color='color')
     graph.edge_renderer.selection_glyph  = MultiLine(line_width=4, line_alpha=0.8, line_color='red')
-    graph.edge_renderer.hover_glyph      = MultiLine(line_width=4, line_alpha=0.8, line_color='green')
+    graph.edge_renderer.hover_glyph      = MultiLine(line_width=4, line_alpha=0.8, line_color='yellow')
     graph.edge_renderer.glyph.line_width = {'field': 'weight'}
-#    graph.edge_renderer.glyph.line_color = {'field': 'weight'}
+#    graph.edge_renderer.glyph.line_color = {'field': 'color'}
 
     graph.selection_policy = NodesAndLinkedEdges()
     graph.inspection_policy = NodesAndLinkedEdges()
@@ -172,7 +174,7 @@ def NLD_pocessing_graph(g, weights, layout):
 ###############################################################################
 #   NLD_FD_processing_graph - ForceDirected
 ###############################################################################
-def NLD_FD_pocessing_graph(g, weights):
+def NLD_FD_pocessing_graph(g, weights, colors):
     r = 1.8*(max(g.degree())[1])/sqrt(g.number_of_nodes())
 
     my_points=nx.fruchterman_reingold_layout(g)
@@ -193,17 +195,16 @@ def NLD_FD_pocessing_graph(g, weights):
     graph_fd.node_renderer.data_source.data['degree2'] = [x+1 for x in graph_fd.node_renderer.data_source.data['degree']]
     graph_fd.node_renderer.data_source.data['my_fill_color'] = my_colors
     graph_fd.edge_renderer.data_source.data['weight'] = weights
+    graph_fd.edge_renderer.data_source.add(colors, 'color')
 
     graph_fd.node_renderer.glyph            = Circle(size ="degree2",  fill_color='my_fill_color', fill_alpha=0.85)
     graph_fd.node_renderer.selection_glyph  = Circle(size=15, fill_alpha=0.8, fill_color='red')
-    graph_fd.node_renderer.hover_glyph      = Circle(size=15, fill_alpha=0.8, fill_color='green')
-#    graph_fd.node_renderer.glyph.color      = {'field': ''}
+    graph_fd.node_renderer.hover_glyph      = Circle(size=15, fill_alpha=0.8, fill_color='yellow')
 
-    graph_fd.edge_renderer.glyph            = MultiLine(line_width=3, line_alpha=0.8, line_color='lightskyblue')
+    graph_fd.edge_renderer.glyph            = MultiLine(line_width=3, line_alpha=0.8, line_color='color')
     graph_fd.edge_renderer.selection_glyph  = MultiLine(line_width=4, line_alpha=0.8, line_color='red')
-    graph_fd.edge_renderer.hover_glyph      = MultiLine(line_width=4, line_alpha=0.8, line_color='green')
+    graph_fd.edge_renderer.hover_glyph      = MultiLine(line_width=4, line_alpha=0.8, line_color='yellow')
     graph_fd.edge_renderer.glyph.line_width = {'field': 'weight'}
-#    graph_fd.edge_renderer.glyph.line_color = {'field': 'weight'}
 
     graph_fd.selection_policy = NodesAndLinkedEdges()
     graph_fd.inspection_policy = NodesAndLinkedEdges()
@@ -219,13 +220,15 @@ def NLD_add_tools(plot):
     plot.add_tools(ZoomOutTool())
     plot.add_tools(ZoomInTool())
     plot.add_tools(ResetTool())
+    plot.add_tools(UndoTool())
+    plot.add_tools(RedoTool())
     plot.add_tools(PanTool())
     plot.add_tools(TapTool())
     plot.add_tools(SaveTool())
     plot.add_tools(BoxSelectTool())
     plot.add_tools(LassoSelectTool())
     # !!! Hover the node attributes !!!
-    node_hover = HoverTool(tooltips=[('Name', '@index'), ('Degree', '@degree')])
+    node_hover = HoverTool(tooltips=[('Name', '@index'), ('Degree', '@degree'), ('Max Weight', '@maxweight')])
     plot.add_tools(node_hover)
 
 
@@ -251,15 +254,24 @@ def NLD_processing(df):
     # Create an example graph
     g=nx.DiGraph()
 
+
+    # Making a function to map color to edges
+    color_palette = list(reversed(Viridis11[:8]))
+    w_max = df.values.max()
+    w_min = df.values.min()
+    step = (w_max-w_min)/(len(color_palette)-1)
+
     # add nodes and edges to the graph
     weights = []
-
+    colors = []
     for row in df.index.values:
         for column in df.index.values:
             if  row < column:
                 if (df[row][column] > 0):
-                    g.add_edge(row,column, weight=df[row][column])
+                    color_index = int((df[row][column] - w_min) / step)
+                    g.add_edge(row, column, weight=df[row][column], color=color_palette[color_index])
                     weights.append(df[row][column])
+                    colors.append(color_palette[color_index])
                 else:
                      g.add_node(row)
 
@@ -271,17 +283,21 @@ def NLD_processing(df):
 
 
     # Organize common layouts' size for NLD
-    NLD_width = 690
+    NLD_width  = 730
     NLD_height = 690
 
+    color_mapper = LinearColorMapper(palette=color_palette, low=w_min, high=w_max)
+    color_bar = ColorBar(color_mapper = color_mapper, border_line_color = None, location = (0,0))
 
     # circular layout
     plot_circle = Plot(plot_width=NLD_width, plot_height=NLD_height,
                 x_range=Range1d(-1.1, 1.1), y_range=Range1d(-1.1, 1.1))
 
-    graph_circle = NLD_pocessing_graph(g, weights, nx.circular_layout)
+    graph_circle = NLD_pocessing_graph(g, weights, colors, nx.circular_layout)
 
     NLD_add_tools(plot_circle)
+
+    plot_circle.add_layout(color_bar, 'right')
 
     plot_circle.renderers.append(graph_circle)
 
@@ -290,9 +306,11 @@ def NLD_processing(df):
     plot_spring = Plot(plot_width=NLD_width, plot_height=NLD_height,
                 x_range=Range1d(-1.1, 1.1), y_range=Range1d(-1.1, 1.1))
 
-    graph_spring = NLD_pocessing_graph(g, weights, nx.spring_layout)
+    graph_spring = NLD_pocessing_graph(g, weights, colors, nx.spring_layout)
 
     NLD_add_tools(plot_spring)
+
+    plot_spring.add_layout(color_bar, 'right')
 
     plot_spring.renderers.append(graph_spring)
 
@@ -301,9 +319,11 @@ def NLD_processing(df):
     plot_fd = Plot(plot_width=NLD_width, plot_height=NLD_height,
                 x_range=Range1d(-1.1, 1.1), y_range=Range1d(-1.1, 1.1))
 
-    graph_fd = NLD_FD_pocessing_graph(g, weights)
+    graph_fd = NLD_FD_pocessing_graph(g, weights, colors)
 
     NLD_add_tools(plot_fd)
+
+    plot_fd.add_layout(color_bar, 'right')
 
     plot_fd.renderers.append(graph_fd)
 
@@ -342,11 +362,9 @@ def main():
 
     tabsAM = AM_processing(df_subset)
 
-    tabsNLD = NLD_processing(df_subset)
+    tabsNLD = NLD_processing(df)
 
     grid = gridplot([[tabsNLD, tabsAM]])
-    #grid = gridplot([[plot_alpha, plot_color]])
-    #grid = gridplot([[plot_circle, plot_spring]])
 
     # Show the tabbed layout
     show(grid)
