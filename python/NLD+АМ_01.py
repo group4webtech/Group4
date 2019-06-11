@@ -175,7 +175,7 @@ def NLD_pocessing_graph(g, weights, colors, layout):
 #   NLD_FD_processing_graph - ForceDirected
 ###############################################################################
 def NLD_FD_pocessing_graph(g, weights, colors):
-    r = 1.8*(max(g.degree())[1])/sqrt(g.number_of_nodes())
+    r = 5/sqrt(g.number_of_nodes()) # changed this to make it work
 
     my_points=nx.fruchterman_reingold_layout(g)
     graph_fd = from_networkx(g, nx.fruchterman_reingold_layout(g,k=r, iterations=100, pos=my_points, scale=1, center=(0,0)))
@@ -192,12 +192,14 @@ def NLD_FD_pocessing_graph(g, weights, colors):
 
     # nodes and egdes attributes
     graph_fd.node_renderer.data_source.data['degree'] = list(zip(*g.degree))[1]
-    graph_fd.node_renderer.data_source.data['degree2'] = [x+1 for x in graph_fd.node_renderer.data_source.data['degree']]
+    graph_fd.node_renderer.data_source.data['degree2'] = [(x+2)*1050 for x in graph_fd.node_renderer.data_source.data['degree']]
+    graph_fd.node_renderer.data_source.data['nodesize'] = [x/(g.number_of_nodes()+150) for x in graph_fd.node_renderer.data_source.data['degree2']]
+    
     graph_fd.node_renderer.data_source.data['my_fill_color'] = my_colors
     graph_fd.edge_renderer.data_source.data['weight'] = weights
     graph_fd.edge_renderer.data_source.add(colors, 'color')
 
-    graph_fd.node_renderer.glyph            = Circle(size ="degree2",  fill_color='my_fill_color', fill_alpha=0.85)
+    graph_fd.node_renderer.glyph            = Circle(size ="nodesize",  fill_color='my_fill_color', fill_alpha=0.85)
     graph_fd.node_renderer.selection_glyph  = Circle(size=15, fill_alpha=0.8, fill_color='red')
     graph_fd.node_renderer.hover_glyph      = Circle(size=15, fill_alpha=0.8, fill_color='yellow')
 
