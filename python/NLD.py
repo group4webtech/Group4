@@ -11,12 +11,18 @@ from bokeh.models.widgets import Tabs, Panel, MultiSelect, Select
 from bokeh.palettes import Spectral4, Spectral8, Viridis6, Viridis11
 from bokeh.plotting import figure, output_file, show
 import itertools
-
 from math import sqrt
+
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
-import sys, json
 
+import sys, json
+import os
+
+output_file('indexnodelink.html')
+
+filename = ''
+file = ''
 
 ###############################################################################
 #   Read data from stdin
@@ -66,9 +72,9 @@ def file_processing(filename):
             newline = newline.replace("_", " ")
             w.write(newline)
 
-    # dataframe for NLD
-    df_int = pd.read_csv('DBL_' + filename, sep=separator)     # full csv file with 1053x1053 values
-    return df_int
+    # full dataframe
+    df_full = pd.read_csv('DBL_' + filename, sep=separator)     # full csv file with 1053x1053 values
+    return df_full
 
 
 ###############################################################################
@@ -115,13 +121,12 @@ def NLD_FD_pocessing_graph(g, weights, colors):
         x = value[0] + 1.0 # x = -1 .. +1, so move to 0 ... 2
         y = value[1] + 1.0 # y = -1 .. +1, so move to 0 ... 2
         my_colors.append( "#%02x%02x%02x" % (int(50+100*x), int(30+100*y), 150) )
-  
 
     # nodes and egdes attributes
     graph_fd.node_renderer.data_source.data['degree'] = list(zip(*g.degree))[1]
     graph_fd.node_renderer.data_source.data['degree2'] = [(x+2)*1050 for x in graph_fd.node_renderer.data_source.data['degree']]
     graph_fd.node_renderer.data_source.data['nodesize'] = [x/(g.number_of_nodes()+150) for x in graph_fd.node_renderer.data_source.data['degree2']]
-    
+
     graph_fd.node_renderer.data_source.data['my_fill_color'] = my_colors
     graph_fd.edge_renderer.data_source.data['weight'] = weights
     graph_fd.edge_renderer.data_source.add(colors, 'color')
@@ -157,7 +162,8 @@ def NLD_add_tools(plot):
     plot.add_tools(BoxSelectTool())
     plot.add_tools(LassoSelectTool())
     # !!! Hover the node attributes !!!
-    node_hover = HoverTool(tooltips=[('Name', '@index'), ('Degree', '@degree')])
+    node_hover = HoverTool(tooltips=[('Name', '@index'), ('Degree', '@degree'),
+                                    ('Min Weight', '@minweight'), ('Max Weight', '@maxweight'), ('Average Weight', '@avrweight'), ('Sum Weight', '@sumweight')])
     plot.add_tools(node_hover)
 
 
@@ -180,29 +186,60 @@ def NLD_processing(df):
     df['index'] = list_columns_int
     df.set_index("index", inplace=True)
 
-    # Create an example graph
-    g=nx.DiGraph()
-
-
     # Making a function to map color to edges
     color_palette = list(reversed(Viridis11[:8]))
     w_max = df.values.max()
     w_min = df.values.min()
     step = (w_max-w_min)/(len(color_palette)-1)
 
-    # add nodes and edges to the graph
-    weights = []
     colors = []
+    # Create a graph with 1-way edges for faster painting
+    g=nx.DiGraph()
     for row in df.index.values:
+        g.add_node(row)
         for column in df.index.values:
             if  row < column:
                 if (df[row][column] > 0):
                     color_index = int((df[row][column] - w_min) / step)
                     g.add_edge(row, column, weight=df[row][column], color=color_palette[color_index])
-                    weights.append(df[row][column])
                     colors.append(color_palette[color_index])
-                else:
-                     g.add_node(row)
+
+    weights = []
+    # Create a separate graph with 2-way edges only to calculate weights
+    g_w=nx.DiGraph()
+    for row in df.index.values:
+        g_w.add_node(row)
+        for column in df.index.values:
+            if  row != column:
+                if (df[row][column] > 0):
+                    g_w.add_edge(row, column, weight=df[row][column], color=color_palette[color_index])
+                    weights.append(df[row][column])
+
+    # do not draw edges with different widths if the max weight is too big
+    if max(weights) > 20:
+        for index, w in enumerate(weights):
+            weights[index] = 1
+
+    # loop over all nodes to find neighbors and set min, max, sum for egdes weights connected to a node
+    node_attr_dict = {}
+    for n in list_columns_int:
+        node_weight_list = []
+        for nb in nx.neighbors(g_w, n):
+            node_weight_list.append(nx.get_edge_attributes(g_w,'weight')[n, nb])
+        len_list = len(node_weight_list)
+        if len_list != 0:
+            node_min_weight = min(node_weight_list)
+            node_max_weight = max(node_weight_list)
+            node_sum_weight = sum(node_weight_list)
+            node_avr_weight = node_sum_weight / len_list
+        else:
+            node_min_weight = 0
+            node_max_weight = 0
+            node_sum_weight = 0
+            node_avr_weight = 0
+        node_attr_dict.update({n:{'minweight':node_min_weight, 'maxweight':node_max_weight, 'avrweight':node_avr_weight, 'sumweight':node_sum_weight}})
+    nx.set_node_attributes(g, node_attr_dict)
+
 
     # create a dictoinary with double for loop
     mapping = {old_label:new_label for old_label, new_label in itertools.zip_longest(sorted(g.nodes()), list_columns_names, fillvalue=1)}
@@ -271,48 +308,55 @@ def NLD_processing(df):
 #   main
 ###############################################################################
 def main():
-    global filename
-    # Sum  of all the items in the providen array
-    total_sum_inArray = 0
-
+    global filename, file
     #get our data as an array from read_in()
 #    lines = read_in()
+
+    # Sum  of all the items in the providen array
+    #total_sum_inArray = 0
 #    filename = "./upload/" + lines[0]
-    filename = 'DBL.csv'
-    #print(filename)
+    filename = "DBL.csv"
+#    file = lines[0]
+#    print(filename)
     #return the sum to the output stream
 
-    df = file_processing(filename)
+    df_full = file_processing(filename)
 
-    output_file('index.html')
+    # subset dataframes
+    #df_subset = df_full.loc["Jim Thomas":"James Landay", "Jim Thomas":"James Landay"]
+    df_subset = df_full.loc["Jim Thomas":"Chris Buckley", "Jim Thomas":"Chris Buckley"]
 
-    # subset dataframe for AM
-    df_subset = df.loc["Jim Thomas":"James Landay", "Jim Thomas":"James Landay"]
-
-    tabsNLD = NLD_processing(df)
+    tabsNLD = NLD_processing(df_subset)
 
     # Show the tabbed layout
     show(tabsNLD)
-
-
-    # Fetch the html file
-    response = urlopen('file://index.html')
-    html_output = response.read()
-
-    # Parse the html file
-    soup = BeautifulSoup(html_output, 'html.parser')
-
-    # Format the parsed html file
-    strhtm = soup.prettify()
-
-    f = open('views/graphs' + '.ejs','w')
-
-    message = """{strhtm}
-    """.format(strhtm=strhtm)
-
 
 ##############################################################################
 #   Start process
 ###############################################################################
 if __name__ == '__main__':
     main()
+
+
+# Fetch the html file
+#response = urlopen('file://indexnodelink.html')
+#html_output = response.read()
+
+# Parse the html file
+#soup = BeautifulSoup(html_output, 'html.parser')
+#ww = "qqqq"
+
+# Format the parsed html file
+#strhtm = soup.prettify()
+
+#fileWithNo = os.path.splitext(file)[0]
+
+#f = open('views/graphs/' + fileWithNo + 'nodelink.ejs','w')
+
+#message = """{strhtm}
+#""".format(strhtm=strhtm)
+
+#print(message)
+
+#f.write(message)
+#f.close()

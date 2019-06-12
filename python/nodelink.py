@@ -344,11 +344,9 @@ tabsNLD = Tabs(tabs=[circle_panel, spring_panel, fd_panel])
 
 show(tabsNLD)
 
-# Fetch the html file
-
 
 # Fetch the html file
-#response = urlopen('file:///C:/Users/Oscar/Documents/tue/q4/Webtech/v2/indexnodelink.html')
+#response = urlopen('file://indexnodelink.html')
 #html_output = response.read()
 
 # Parse the html file
