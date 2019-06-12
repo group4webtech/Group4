@@ -8,7 +8,7 @@ from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges, EdgesAndLink
 from bokeh.models.sources import ColumnDataSource, CDSView
 from bokeh.layouts import row, column, gridplot
 from bokeh.models.widgets import Tabs, Panel, MultiSelect, Select
-from bokeh.palettes import Spectral4, Spectral8, Viridis6, Viridis11, Magma6
+from bokeh.palettes import Spectral4, Spectral8, Viridis6, Viridis11
 from bokeh.plotting import figure, output_file, show
 import itertools
 from math import sqrt
@@ -19,7 +19,7 @@ from urllib.request import urlopen
 import sys, json
 import os
 
-output_file('indexboth.html')
+output_file('indexnodelink.html')
 
 filename = ''
 file = ''
@@ -96,82 +96,6 @@ df_full = pd.read_csv('DBL_' + filename, sep=separator)     # full csv file with
 #df_subset = df_full.loc["Jim Thomas":"James Landay", "Jim Thomas":"James Landay"]
 df_NL = df_full.loc["Jim Thomas":"Chris Buckley", "Jim Thomas":"Chris Buckley"]
 df_AM = df_full.loc["Jim Thomas":"Chris Buckley", "Jim Thomas":"Chris Buckley"]
-
-
-###############################################################################
-#   AM_processing
-###############################################################################
-
-max_value = df_AM.values.max()
-min_value = df_AM.values.min()
-values = df_AM.values
-counts = values.astype(float)
-#counts = df_AM.values
-names  = df_AM.index.values.tolist()
-names1 = df_AM.index.values.tolist()
-names.extend(names1 * (len(names1) - 1))
-
-def duplicate(names1, n):
-    return [ele for ele in names1 for _ in range(n)]
-xname = duplicate(names1, len(names1))
-yname = names
-
-names2 = sorted(names1)
-names3 = sorted(names1, key = len)
-alpha = []
-
-for i, name in enumerate(names1):
-    for j, name1 in enumerate(names1):
-        alpha.append(min(counts[i, j]/4, 0.9) + 0.1)
-
-dataAM=dict(xname=xname, yname=yname, count=counts, alphas=alpha)
-source = ColumnDataSource(dataAM)
-
-#select = Select(title="Filtering:", options=['Alphabetical', 'Length'])
-
-hover_am = HoverTool(tooltips = [('Names', '@yname, @xname'), ('Value', '@count')])
-
-# color matrix
-color_palette = list(reversed(Viridis11[:8]))
-mapper = LinearColorMapper(palette=color_palette, low=min_value, high=max_value)
-color_bar = ColorBar(color_mapper = mapper, border_line_color = None, location = (0,0))
-
-
-plot_color = figure(title="", x_axis_location="above", x_range=names2, y_range=list(reversed(names2)),toolbar_location = 'below')
-plot_color.plot_width = 650
-plot_color.plot_height = 650
-plot_color.grid.grid_line_color = None
-plot_color.axis.axis_line_color = None
-plot_color.axis.major_tick_line_color = None
-plot_color.axis.major_label_text_font_size = "5pt"
-plot_color.axis.major_label_standoff = 0
-plot_color.xaxis.major_label_orientation = np.pi/3
-plot_color.add_tools(hover_am)
-plot_color.add_tools(BoxSelectTool())
-
-plot_color.rect('xname', 'yname', 0.9, 0.9, source=source, line_color=None, hover_line_color='black', fill_color={'field': 'count', 'transform': mapper})
-plot_color.add_layout(color_bar, 'right')
-
-# alpha matrix
-plot_alpha = figure(title="", x_axis_location="above", x_range=names2, y_range=list(reversed(names2)),toolbar_location = 'below')
-plot_alpha.plot_width = 650
-plot_alpha.plot_height = 650
-plot_alpha.grid.grid_line_color = None
-plot_alpha.axis.axis_line_color = None
-plot_alpha.axis.major_tick_line_color = None
-plot_alpha.axis.major_label_text_font_size = "5pt"
-plot_alpha.axis.major_label_standoff = 0
-plot_alpha.xaxis.major_label_orientation = np.pi/3
-plot_alpha.add_tools(hover_am)
-plot_alpha.add_tools(BoxSelectTool())
-plot_alpha.rect('xname', 'yname', 0.9, 0.9, source=source, line_color=None, hover_line_color='black', alpha = 'alphas')
-
-alpha_panel = Panel(child = plot_alpha, title = 'Alpha model')
-color_panel = Panel(child = plot_color, title = 'Color model')
-
-# Assign the AM panels to Tabs
-tabsAM = Tabs(tabs=[alpha_panel, color_panel])
-
 
 
 ###############################################################################
@@ -418,15 +342,9 @@ fd_panel     = Panel(child=plot_fd, title='Force-Directed layout')
 # Assign NLD panels to Tabs
 tabsNLD = Tabs(tabs=[circle_panel, spring_panel, fd_panel])
 
+show(tabsNLD)
 
-###############################################################################
-#   both
-###############################################################################
-
-grid = gridplot([[tabsNLD, tabsAM]])
-
-# Show the tabbed layout
-show(grid)
+# Fetch the html file
 
 
 # Fetch the html file
