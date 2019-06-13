@@ -39,7 +39,11 @@ def read_in():
 def file_processing(filename):
     separator = ";"
 
-    with open(filename, 'r') as r, open('DBL_' + filename, 'w') as w:
+    new_filename = filename.replace(".csv", "_DBL.csv")
+    if new_filename == filename:
+        new_filename = "DBL.csv"
+
+    with open(filename, 'r') as r, open(new_filename, 'w') as w:
         for num, line in enumerate(r):
             if num >= 0:
 
@@ -73,7 +77,7 @@ def file_processing(filename):
             w.write(newline)
 
     # full dataframe
-    df_full = pd.read_csv('DBL_' + filename, sep=separator)     # full csv file with 1053x1053 values
+    df_full = pd.read_csv(new_filename, sep=separator)     # full csv file with 1053x1053 values
     return df_full
 
 
@@ -310,13 +314,13 @@ def NLD_processing(df):
 def main():
     global filename, file
     #get our data as an array from read_in()
-#    lines = read_in()
+    lines = read_in()
 
     # Sum  of all the items in the providen array
     #total_sum_inArray = 0
-#    filename = "./upload/" + lines[0]
-    filename = "DBL.csv"
-#    file = lines[0]
+    filename = "./upload/" + lines[0]
+#    filename = "DBL.csv"
+    file = lines[0]
 #    print(filename)
     #return the sum to the output stream
 
@@ -339,24 +343,24 @@ if __name__ == '__main__':
 
 
 # Fetch the html file
-#response = urlopen('file://indexnodelink.html')
-#html_output = response.read()
+response = urlopen('file://indexnodelink.html')
+html_output = response.read()
 
 # Parse the html file
-#soup = BeautifulSoup(html_output, 'html.parser')
-#ww = "qqqq"
+soup = BeautifulSoup(html_output, 'html.parser')
+ww = "qqqq"
 
 # Format the parsed html file
-#strhtm = soup.prettify()
+strhtm = soup.prettify()
 
-#fileWithNo = os.path.splitext(file)[0]
+fileWithNo = os.path.splitext(file)[0]
 
-#f = open('views/graphs/' + fileWithNo + 'nodelink.ejs','w')
+f = open('views/graphs/' + fileWithNo + 'nodelink.ejs','w')
 
-#message = """{strhtm}
-#""".format(strhtm=strhtm)
+message = """{strhtm}
+""".format(strhtm=strhtm)
 
 #print(message)
 
-#f.write(message)
-#f.close()
+f.write(message)
+f.close()
