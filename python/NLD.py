@@ -41,7 +41,7 @@ def file_processing(filename):
 
     new_filename = filename.replace(".csv", "_DBL.csv")
     if new_filename == filename:
-        new_filename = "DBL.csv"
+        new_filename += "_DBL.csv"
 
     with open(filename, 'r') as r, open(new_filename, 'w') as w:
         for num, line in enumerate(r):
@@ -92,7 +92,7 @@ def NLD_pocessing_graph(g, weights, colors, layout):
     graph.edge_renderer.data_source.data['weight'] = weights
     graph.edge_renderer.data_source.add(colors, 'color')
 
-    graph.node_renderer.glyph            = Circle(size=10, fill_alpha=0.8, fill_color='royalblue')
+    graph.node_renderer.glyph            = Circle(size='nodesize', fill_alpha=0.8, fill_color='royalblue')
     graph.node_renderer.selection_glyph  = Circle(size=10, fill_alpha=0.8, fill_color='red')
     graph.node_renderer.hover_glyph      = Circle(size=10, fill_alpha=0.8, fill_color='yellow')
 
@@ -129,13 +129,13 @@ def NLD_FD_pocessing_graph(g, weights, colors):
     # nodes and egdes attributes
     graph_fd.node_renderer.data_source.data['degree'] = list(zip(*g.degree))[1]
     graph_fd.node_renderer.data_source.data['degree2'] = [(x+2)*1050 for x in graph_fd.node_renderer.data_source.data['degree']]
-    graph_fd.node_renderer.data_source.data['nodesize'] = [x/(g.number_of_nodes()+150) for x in graph_fd.node_renderer.data_source.data['degree2']]
+    graph_fd.node_renderer.data_source.data['nodessize'] = [x/(g.number_of_nodes()+150) for x in graph_fd.node_renderer.data_source.data['degree2']]
 
     graph_fd.node_renderer.data_source.data['my_fill_color'] = my_colors
     graph_fd.edge_renderer.data_source.data['weight'] = weights
     graph_fd.edge_renderer.data_source.add(colors, 'color')
 
-    graph_fd.node_renderer.glyph            = Circle(size ="nodesize",  fill_color='my_fill_color', fill_alpha=0.85)
+    graph_fd.node_renderer.glyph            = Circle(size ="nodessize",  fill_color='my_fill_color', fill_alpha=0.85)
     graph_fd.node_renderer.selection_glyph  = Circle(size=15, fill_alpha=0.8, fill_color='red')
     graph_fd.node_renderer.hover_glyph      = Circle(size=15, fill_alpha=0.8, fill_color='yellow')
 
@@ -166,8 +166,9 @@ def NLD_add_tools(plot):
     plot.add_tools(BoxSelectTool())
     plot.add_tools(LassoSelectTool())
     # !!! Hover the node attributes !!!
-    node_hover = HoverTool(tooltips=[('Name', '@index'), ('Degree', '@degree'),
-                                    ('Min Weight', '@minweight'), ('Max Weight', '@maxweight'), ('Average Weight', '@avrweight'), ('Sum Weight', '@sumweight')])
+    node_hover = HoverTool(tooltips=[('Name', '@index'), ('Degree', '@degree'), #('Node Size', '@nodesize'),
+                                    ('Min Weight', '@minweight'), ('Max Weight', '@maxweight'),
+                                    ('Average Weight', '@avrweight'), ('Sum Weight', '@sumweight')])
     plot.add_tools(node_hover)
 
 
@@ -195,6 +196,7 @@ def NLD_processing(df):
     w_max = df.values.max()
     w_min = df.values.min()
     step = (w_max-w_min)/(len(color_palette)-1)
+
 
     colors = []
     # Create a graph with 1-way edges for faster painting
@@ -225,7 +227,7 @@ def NLD_processing(df):
             weights[index] = 1
 
     # loop over all nodes to find neighbors and set min, max, sum for egdes weights connected to a node
-    node_attr_dict = {}
+    node_w_dict = {}
     for n in list_columns_int:
         node_weight_list = []
         for nb in nx.neighbors(g_w, n):
@@ -241,8 +243,21 @@ def NLD_processing(df):
             node_max_weight = 0
             node_sum_weight = 0
             node_avr_weight = 0
-        node_attr_dict.update({n:{'minweight':node_min_weight, 'maxweight':node_max_weight, 'avrweight':node_avr_weight, 'sumweight':node_sum_weight}})
-    nx.set_node_attributes(g, node_attr_dict)
+        node_w_dict.update({n:{'minweight':node_min_weight, 'maxweight':node_max_weight, 'avrweight':node_avr_weight, 'sumweight':node_sum_weight}})
+    nx.set_node_attributes(g, node_w_dict)
+
+    # Making a function to map node size
+    deg_node_size_list = [5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
+    deg_max = max(list(list(zip(*g.degree))[1]))
+    deg_min = min(list(list(zip(*g.degree))[1]))
+    deg_step = (deg_max-deg_min)/(len(deg_node_size_list)-1)
+    i = 0
+    node_s_dict = {}
+    for node in list(list(zip(*g.degree))[0]):
+        deg_index = int((list(list(zip(*g.degree))[1])[i] - deg_min) / deg_step)
+        node_s_dict.update({node:{'nodesize':deg_node_size_list[deg_index]}})
+        i += 1
+    nx.set_node_attributes(g, node_s_dict)
 
 
     # create a dictoinary with double for loop
@@ -301,7 +316,7 @@ def NLD_processing(df):
     # Create panels for each layout
     circle_panel = Panel(child=plot_circle, title='Circle layout')
     spring_panel = Panel(child=plot_spring, title='Spring layout')
-    fd_panel     = Panel(child=plot_fd, title='Force-Directed layout')
+    fd_panel     = Panel(child=plot_fd,     title='Force-Directed layout')
 
     # Assign NLD panels to Tabs
     tabsNLD_int = Tabs(tabs=[circle_panel, spring_panel, fd_panel])
@@ -314,21 +329,20 @@ def NLD_processing(df):
 def main():
     global filename, file
     #get our data as an array from read_in()
-    lines = read_in()
+#    lines = read_in()
 
     # Sum  of all the items in the providen array
     #total_sum_inArray = 0
-    filename = "./upload/" + lines[0]
-#    filename = "DBL.csv"
-    file = lines[0]
-#    print(filename)
+#    filename = "./upload/" + lines[0]
+    filename = "DBL.csv"
+#    file = lines[0]
     #return the sum to the output stream
 
     df_full = file_processing(filename)
 
     # subset dataframes
-    #df_subset = df_full.loc["Jim Thomas":"James Landay", "Jim Thomas":"James Landay"]
-    df_subset = df_full.loc["Jim Thomas":"Chris Buckley", "Jim Thomas":"Chris Buckley"]
+#    df_subset = df_full.loc["Jim Thomas":"James Landay", "Jim Thomas":"James Landay"] # 50
+    df_subset = df_full.loc["Jim Thomas":"Chris Buckley", "Jim Thomas":"Chris Buckley"] # 100
 
     tabsNLD = NLD_processing(df_subset)
 

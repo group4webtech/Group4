@@ -41,7 +41,7 @@ def file_processing(filename):
 
     new_filename = filename.replace(".csv", "_DBL.csv")
     if new_filename == filename:
-        new_filename = "DBL.csv"
+        new_filename += "_DBL.csv"
 
     with open(filename, 'r') as r, open(new_filename, 'w') as w:
         for num, line in enumerate(r):
@@ -159,14 +159,13 @@ def AM_processing(df_AM):
 def main():
     global filename, file
     #get our data as an array from read_in()
-    lines = read_in()
+#    lines = read_in()
 
     # Sum  of all the items in the providen array
     #total_sum_inArray = 0
-    filename = "./upload/" + lines[0]
-#    filename = "DBL.csv"
-    file = lines[0]
-#    print(filename)
+#    filename = "./upload/" + lines[0]
+    filename = "DBL.csv"
+#    file = lines[0]
     #return the sum to the output stream
 
     df_full = file_processing(filename)
