@@ -94,3 +94,7 @@ nav button:hover {
 #intro-text p {
   margin-top: 50px;
 }
+
+main {
+  color: white;
+}

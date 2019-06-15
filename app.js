@@ -1,85 +1,85 @@
 var express = require("express");
 var app = express();
-var bodyParser = require("body-parser");
 var port = 3000;
-var uploadToFolder = require("express-fileupload");
+var upload = require("express-fileupload");
 // For reading the csv file
 var fs = require("fs");
 var csv = require("fast-csv");
-// For uploading to mongodb
-var path = require("path");
-// generating filenames
-var crypto = require("crypto");
-// interacting with db
-var mongoose = require("mongoose");
-var multer = require("multer");
-var gridFsStorage = require("multer-gridFs-storage");
-var grid = require("gridfs-stream");
-var methodOverride = require("method-override");
+// Python shell
+var ps = require('python-shell')
+var spawn = require('child_process').spawn;
+// Generating unique id for the files
+var uniqid = require('uniqid');
+//compressing python output
 
-// Middleware
-app.use(bodyParser.json());
-app.use(methodOverride("_method"));
+var pythonOutput = "";
+var fileNameTo = "";
 
-// Mongo URI
-var mongoUri = "mongodb+srv://group4:groupfour@cluster0-365f0.mongodb.net/test?retryWrites=true";
+var loading = ''
 
-// Create mongo connection
-var conn = mongoose.createConnection(mongoUri);
+function dataToPyMatrix(fileName) {
+  //var scriptExecution = spawn("python.exe", ['./python/nodelink2.py']);
+  var scriptExecution = spawn("python.exe", ['./python/AM.py']);
+  // Handle normal output
+  scriptExecution.stdout.on('data', (data) => {
+     //pythonOutput = String.fromCharCode.apply(null, data);
+  });
 
-// Init gridFs
-var gfs;
+  // Write data (remember to send only strings or numbers, otherwhise python wont understand)
+  var data = JSON.stringify([fileName]);
+  scriptExecution.stdin.write(data);
+  // End data write
+  scriptExecution.stdin.end();
+}
 
-conn.once("open", () => {
-  // Init stream
-  gfs = grid(conn.db, mongoose.mongo);
-  gfs.collection("uploads");
-})
 
-// Create storage engine
-var crypto = require('crypto');
-var path = require('path');
-var GridFsStorage = require('multer-gridfs-storage');
+function dataToPyNodelink(fileName) {
+  //var scriptExecution = spawn("python.exe", ['./python/nodelink2.py']);
+  var scriptExecution = spawn("python.exe", ['./python/NLD.py']);
+  // Handle normal output
+  scriptExecution.stdout.on('data', (data) => {
+     pythonOutput = String.fromCharCode.apply(null, data);
+     console.log(pythonOutput)
+  });
 
-var storage = new GridFsStorage({
-  url: mongoUri,
-  file: (req, file) => {
-    return new Promise((resolve, reject) => {
-      crypto.randomBytes(16, (err, buf) => {
-        if (err) {
-          return reject(err);
-        }
-        var filename = buf.toString('hex') + path.extname(file.originalname);
-        var fileInfo = {
-          filename: filename,
-          bucketName: 'uploads'
-        };
-        resolve(fileInfo);
-      });
-    });
-  }
-});
-var upload = multer({ storage });
+  // Write data (remember to send only strings or numbers, otherwhise python wont understand)
+  var data = JSON.stringify([fileName]);
+  scriptExecution.stdin.write(data);
+  // End data write
+  scriptExecution.stdin.end();
+}
 
-// @route POST /upload
-// @desc Uploads file to db
-app.post("/upload", upload.single("csvFile"), (req, res) => {
-  res.json({file: req.file});
-})
+function dataToPyBoth(fileName) {
+  //var scriptExecution = spawn("python.exe", ['./python/nodelink2.py']);
+  var scriptExecution = spawn("python.exe", ['./python/NLD_and_AM.py']);
+  // Handle normal output
+  scriptExecution.stdout.on('data', (data) => {
+     pythonOutput = String.fromCharCode.apply(null, data);
+  });
+
+  // Write data (remember to send only strings or numbers, otherwhise python wont understand)
+  var data = JSON.stringify([fileName]);
+  scriptExecution.stdin.write(data);
+  // End data write
+  scriptExecution.stdin.end();
+}
+
+
+// Connect with the upload package
+app.use(upload())
 
 // To leave out the ejs extension
 app.set("view engine", "ejs")
 
-// Insert post
-app.get("/addpost", (req, res) => {
-  var post = "";
-})
-
-// Connect with the upload package
-app.use(uploadToFolder())
-
 // Look in the static folder for all the css and js files, img and fonds
 app.use(express.static("static"))
+
+//running python files
+//ps.PythonShell.run('./python/nodelink.py', null, function (err, results) {
+  //if (err) throw err;
+  //console.log('python script output!');
+  //console.log(results);
+//});
 
 
 // When on just localhost, show landing page
@@ -92,8 +92,17 @@ app.get("/upload", function(req, res){
   res.render("upload");
 })
 
+// when on "localhost/grapgs" show the page
+app.get("/graphs", function(req, res){
+  res.render("graphs")
+})
+
+app.get("/nodelink", function(req, res) {
+  res.render("nodelink");
+})
+
 // Upload file to upload dir
-/* app.post("/", function(req, res){
+app.post("/", function(req, res){
   if (Object.keys(req.files).length == 0) {
      return res.status(400).send('No files were uploaded.');
    }
@@ -101,25 +110,75 @@ app.get("/upload", function(req, res){
    // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
    var csvFile = req.files.csvFile;
    var fileName = csvFile.name;
+   var fileName = uniqid() + ".csv";
+   var filePath = './upload/' + fileName;
 
-   // Use the mv() method to place the file somewhere on your server
-   csvFile.mv('./upload/' + fileName, function(err) {
+   // Use the mv() method to place the file somewhere on the server
+   csvFile.mv(filePath, function(err) {
      if (err)
        return res.status(500).send(err);
-
-     res.send('File uploaded!');
+       //res.redirect("nodelink");
+      //res.redirect("/graphs/" + fileName);
    });
-}) */
+   filenameTo = fileName;
+   console.log(fileNameTo + 'adasdad11')
 
-// Reading and translating csv file
-fs.createReadStream("upload/GephiMatrix_co-citation.csv")
-  .pipe(csv())
-  .on("data", function(data){
-    //console.log(data);
+   res.redirect("/choose/" + fileName)
+   console.log(fileNameTo + 'adasdad1')
+
+})
+
+app.get("/viewmatrix/choose/:id", function(req, res){
+  fileName = req.params.id
+  fileNameWithNoExtension = fileName.slice(0, -4)
+  fs.writeFile('views/graphs/' + fileNameWithNoExtension + 'matrix.ejs', loading,function (err) {
+    if (err) throw err;
+  console.log('File is created successfully.');
+  res.redirect('/graphs/' + fileNameWithNoExtension + 'matrix.ejs')
   })
-  .on("end", function(data){
-    //console.log("Csv file read")
+  dataToPyMatrix(fileName)
+  //res.redirect('/graphs/' + fileNameWithNoExtension + 'matrix.ejs')
+})
+
+app.get("/viewnodelink/choose/:id", function(req, res){
+  fileName = req.params.id
+  fileNameWithNoExtension = fileName.slice(0, -4)
+  fs.writeFile('views/graphs/' + fileNameWithNoExtension + 'nodelink.ejs', loading,function (err) {
+    if (err) throw err;
+  console.log('File is created successfully.');
+  res.redirect('/graphs/' + fileNameWithNoExtension + 'nodelink.ejs')
   })
+  dataToPyNodelink(fileName)
+})
+
+app.get("/viewboth/choose/:id", function(req, res){
+  fileName = req.params.id
+  fileNameWithNoExtension = fileName.slice(0, -4)
+  fs.writeFile('views/graphs/' + fileNameWithNoExtension + 'both.ejs', loading,function (err) {
+    if (err) throw err;
+  //console.log('File is created successfully.');
+  console.log('File is created successfully.');
+  res.redirect('/graphs/' + fileNameWithNoExtension + 'both.ejs')
+  })
+  dataToPyBoth(fileName)
+
+  //res.redirect('/graphs/' + fileNameWithNoExtension + 'both.ejs')
+})
+
+app.get("/choose/:id", function(req, res) {
+  console.log(req.params.id);
+  res.render("choose")
+})
+
+app.get("/graphs/:id", function(req, res){
+  var id = req.params.id;
+  res.render("graphs/" + id)
+})
+
+app.get("/about", function(req, res){
+  res.render("about")
+})
 
 
-app.listen(port, () => console.log("Group 4 server has started!"));
+
+app.listen(process.env.PORT || port, () => console.log("Group 4 server has started!"));

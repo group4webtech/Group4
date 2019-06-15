@@ -4,7 +4,7 @@
     <div id="nav-rightside">
       <ul>
         <li><a href="/">Home</a></li>
-        <li><a href="#">About</a></li>
+        <li><a href="about">About</a></li>
       </ul>
 
       <a href="upload" id="uploadBtn">Upload Dataset</a>
@@ -15,11 +15,10 @@
     <img src="../img/uploadicon.png">
     <h1 class="title is-3">Drag and drop files here</h1>
     <p>or</p>
-    <button type="button" class="button is-link is-normal" id="custom-button">Chose file</button> <span id=""></span>
-    <form ref="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+    <button type="button" class="button is-link is-normal" id="custom-button">choose file</button> <span id=""></span>
+    <form ref="uploadForm" action="/" method="post" enctype="multipart/form-data">
       <input type="file" name="csvFile" id="real-file" hidden="hidden">
-      <label for="file" class="custom-file-label"></label>
-      <input type="submit" value="upload">
+      <input class="button is-primary upload-to" type="submit" value="upload">
     </form>
   </div>
 

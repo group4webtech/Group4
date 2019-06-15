@@ -7,7 +7,7 @@ body {
   width: 50%;
   height: 500px;
   margin: auto;
-  background-color: #F5F6FA;
+  background-color: white;
   opacity: ;
   border-radius: 10px;
   text-align: center;
@@ -27,4 +27,9 @@ body {
 
 #uploadForm button {
   margin-top: 30px;
+}
+
+.upload-to {
+  width: 95px;
+  margin-top: 10px;
 }
