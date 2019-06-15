@@ -3,7 +3,7 @@ import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
 from bokeh.io import output_file, output_notebook, show
-from bokeh.models import ColumnDataSource, LinearColorMapper, ColorBar, LogTicker, Plot, Range1d, MultiLine, Circle, HoverTool, TapTool, BoxSelectTool, WheelZoomTool, ResetTool, UndoTool, RedoTool, ZoomOutTool, ZoomInTool, PanTool, SaveTool, BoxSelectTool, LassoSelectTool
+from bokeh.models import ColumnDataSource, LinearColorMapper, ColorBar, LogTicker, Plot, Range1d, MultiLine, Circle, HoverTool, TapTool, BoxSelectTool, WheelZoomTool, BoxZoomTool, ResetTool, UndoTool, RedoTool, ZoomOutTool, ZoomInTool, PanTool, SaveTool, BoxSelectTool, LassoSelectTool
 from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges, EdgesAndLinkedNodes
 from bokeh.models.sources import ColumnDataSource, CDSView
 from bokeh.layouts import row, column, gridplot
@@ -85,7 +85,10 @@ def file_processing(filename):
 #   NLD_processing_graph
 ###############################################################################
 def NLD_pocessing_graph(g, weights, colors, layout):
-    graph = from_networkx(g, layout, scale=1, center=(0,0))
+    if layout != nx.random_layout:
+        graph = from_networkx(g, layout, scale=1, center=(0,0))
+    else:
+        graph = from_networkx(g, layout, center=(0,0))
 
     # nodes and egdes attributes
     graph.node_renderer.data_source.data['degree'] = list(zip(*g.degree))[1]
@@ -110,11 +113,9 @@ def NLD_pocessing_graph(g, weights, colors, layout):
 ###############################################################################
 #   NLD_FD_processing_graph - ForceDirected
 ###############################################################################
-def NLD_FD_pocessing_graph(g, weights, colors):
-    r = 5/sqrt(g.number_of_nodes()) # changed this to make it work
-
+def NLD_FD_pocessing_graph(g, weights, colors, layout, degree_sequence):
     my_points=nx.fruchterman_reingold_layout(g)
-    graph_fd = from_networkx(g, nx.fruchterman_reingold_layout(g,k=r, iterations=100, pos=my_points, scale=1, center=(0,0)))
+    graph_fd = from_networkx(g, layout)
 
     #posxy=nx.fruchterman_reingold_layout(g)
     #for i in range(len(posxy()):
@@ -128,14 +129,14 @@ def NLD_FD_pocessing_graph(g, weights, colors):
 
     # nodes and egdes attributes
     graph_fd.node_renderer.data_source.data['degree'] = list(zip(*g.degree))[1]
-    graph_fd.node_renderer.data_source.data['degree2'] = [(x+2)*1050 for x in graph_fd.node_renderer.data_source.data['degree']]
-    graph_fd.node_renderer.data_source.data['nodessize'] = [x/(g.number_of_nodes()+150) for x in graph_fd.node_renderer.data_source.data['degree2']]
+    graph_fd.node_renderer.data_source.data['degree2'] = [sqrt(x+6) for x in graph_fd.node_renderer.data_source.data['degree']]
+    graph_fd.node_renderer.data_source.data['nodessize'] = [x*115/(sqrt(g.number_of_nodes()+(np.mean(degree_sequence)))) for x in graph_fd.node_renderer.data_source.data['degree2']]
 
     graph_fd.node_renderer.data_source.data['my_fill_color'] = my_colors
     graph_fd.edge_renderer.data_source.data['weight'] = weights
     graph_fd.edge_renderer.data_source.add(colors, 'color')
 
-    graph_fd.node_renderer.glyph            = Circle(size ="nodessize",  fill_color='my_fill_color', fill_alpha=0.85)
+    graph_fd.node_renderer.glyph            = Circle(size ="nodesize",  fill_color='my_fill_color', fill_alpha=0.85)
     graph_fd.node_renderer.selection_glyph  = Circle(size=15, fill_alpha=0.8, fill_color='red')
     graph_fd.node_renderer.hover_glyph      = Circle(size=15, fill_alpha=0.8, fill_color='yellow')
 
@@ -155,8 +156,8 @@ def NLD_FD_pocessing_graph(g, weights, colors):
 ###############################################################################
 def NLD_add_tools(plot):
     plot.add_tools(WheelZoomTool())
-    plot.add_tools(ZoomOutTool())
     plot.add_tools(ZoomInTool())
+    plot.add_tools(ZoomOutTool())
     plot.add_tools(ResetTool())
     plot.add_tools(UndoTool())
     plot.add_tools(RedoTool())
@@ -165,6 +166,7 @@ def NLD_add_tools(plot):
     plot.add_tools(SaveTool())
     plot.add_tools(BoxSelectTool())
     plot.add_tools(LassoSelectTool())
+    plot.add_tools(BoxZoomTool())
     # !!! Hover the node attributes !!!
     node_hover = HoverTool(tooltips=[('Name', '@index'), ('Degree', '@degree'), #('Node Size', '@nodesize'),
                                     ('Min Weight', '@minweight'), ('Max Weight', '@maxweight'),
@@ -222,7 +224,7 @@ def NLD_processing(df):
                     weights.append(df[row][column])
 
     # do not draw edges with different widths if the max weight is too big
-    if max(weights) > 20:
+    if max(weights) > 30:
         for index, w in enumerate(weights):
             weights[index] = 1
 
@@ -304,7 +306,11 @@ def NLD_processing(df):
     plot_fd = Plot(plot_width=NLD_width, plot_height=NLD_height,
                 x_range=Range1d(-1.1, 1.1), y_range=Range1d(-1.1, 1.1))
 
-    graph_fd = NLD_FD_pocessing_graph(g, weights, colors)
+    degree_sequence = sorted([d for n, d in g.degree()], reverse=True)
+    magicnumber = (g.number_of_nodes()/degree_sequence[0]**2)
+    r = 1.1/magicnumber
+    my_points=nx.fruchterman_reingold_layout(g)
+    graph_fd = NLD_FD_pocessing_graph(g, weights, colors, nx.fruchterman_reingold_layout(g,k=r, iterations=100, pos=my_points, scale=1, center=(0,0)), degree_sequence)
 
     NLD_add_tools(plot_fd)
 
@@ -313,13 +319,26 @@ def NLD_processing(df):
     plot_fd.renderers.append(graph_fd)
 
 
+    # random layout
+    plot_random = Plot(plot_width=NLD_width, plot_height=NLD_height,
+                x_range=Range1d(-0.1, 1.1), y_range=Range1d(-0.1, 1.1))
+
+    graph_random = NLD_FD_pocessing_graph(g, weights, colors, nx.random_layout, degree_sequence)
+
+    NLD_add_tools(plot_random)
+
+    plot_random.add_layout(color_bar, 'right')
+
+    plot_random.renderers.append(graph_random)
+
     # Create panels for each layout
     circle_panel = Panel(child=plot_circle, title='Circle layout')
     spring_panel = Panel(child=plot_spring, title='Spring layout')
+    random_panel = Panel(child=plot_random, title='Random layout')
     fd_panel     = Panel(child=plot_fd,     title='Force-Directed layout')
 
     # Assign NLD panels to Tabs
-    tabsNLD_int = Tabs(tabs=[circle_panel, spring_panel, fd_panel])
+    tabsNLD_int = Tabs(tabs=[circle_panel, spring_panel, fd_panel, random_panel])
     return tabsNLD_int
 
 
@@ -336,6 +355,7 @@ def main():
 #    filename = "./upload/" + lines[0]
     filename = "DBL.csv"
 #    file = lines[0]
+#    print(filename)
     #return the sum to the output stream
 
     df_full = file_processing(filename)
