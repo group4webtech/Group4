@@ -270,7 +270,7 @@ def NLD_processing(df):
 
 
     # Organize common layouts' size for NLD
-    NLD_width  = 730
+    NLD_width  = 780
     NLD_height = 690
 
     color_mapper = LinearColorMapper(palette=color_palette, low=w_min, high=w_max)
