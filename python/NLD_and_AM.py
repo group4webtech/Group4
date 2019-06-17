@@ -12,7 +12,8 @@ from bokeh.palettes import Spectral4, Spectral8, Viridis6, Viridis11, Magma6
 from bokeh.plotting import figure, output_file, show
 import itertools
 from math import sqrt
-
+from sklearn.utils import shuffle
+import random
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 
@@ -119,7 +120,7 @@ def AM_processing(df_AM):
     yname = names
 
     names2 = sorted(names1)
-    names3 = sorted(names1, key = len)
+    random.shuffle(names1)
     alpha = []
 
     for i, name in enumerate(names1):
@@ -144,12 +145,18 @@ def AM_processing(df_AM):
     # alpha matrix
     plot_alpha = AM_processing_plot(names2, source, hover_am)
     plot_alpha.rect('xname', 'yname', 0.9, 0.9, source=source, line_color=None, hover_line_color='black', alpha = 'alphas')
+    
+    #random matrix
+    random_matrix = AM_processing_plot(names1, source, hover_am)
+    random_matrix.rect('xname', 'yname', 0.9, 0.9, source=source, line_color=None, hover_line_color='black', fill_color={'field': 'count', 'transform': mapper})
+    random_matrix.add_layout(color_bar, 'right')
 
     alpha_panel = Panel(child = plot_alpha, title = 'Alpha model')
     color_panel = Panel(child = plot_color, title = 'Color model')
+    random_panel = Panel(child = random_matrix, title = 'Random model')
 
     # Assign the AM panels to Tabs
-    tabsAM_int = Tabs(tabs=[alpha_panel, color_panel])
+    tabsAM_int = Tabs(tabs=[alpha_panel, color_panel, random_panel])
     return tabsAM_int
 
 
