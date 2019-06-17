@@ -19,15 +19,16 @@ var fileNameTo = "";
 var loading = '<script>document.onchange = location.reload();</script>'
 var statOutput = ""
 
+
 function dataToPyMatrix(fileName) {
-  //var scriptExecution = spawn("python.exe", ['./python/nodelink2.py']);
   var scriptExecution = spawn("python.exe", ['./python/AM.py']);
   // Handle normal output
   scriptExecution.stdout.on('data', (data) => {
-     //pythonOutput = String.fromCharCode.apply(null, data);
+     pythonOutput = String.fromCharCode.apply(null, data);
+	 console.log(pythonOutput)
   });
 
-  // Write data (remember to send only strings or numbers, otherwhise python wont understand)
+  // Write data (remember to send only strings or numbers, otherwise python wont understand)
   var data = JSON.stringify([fileName]);
   scriptExecution.stdin.write(data);
   // End data write
@@ -35,9 +36,7 @@ function dataToPyMatrix(fileName) {
 }
 
 
-
 function dataToPyNodelink(fileName) {
-  //var scriptExecution = spawn("python.exe", ['./python/nodelink2.py']);
   var scriptExecution = spawn("python.exe", ['./python/NLD.py']);
   // Handle normal output
   scriptExecution.stdout.on('data', (data) => {
@@ -45,31 +44,32 @@ function dataToPyNodelink(fileName) {
      console.log(pythonOutput)
   });
 
-  // Write data (remember to send only strings or numbers, otherwhise python wont understand)
+  // Write data (remember to send only strings or numbers, otherwise python wont understand)
   var data = JSON.stringify([fileName]);
   scriptExecution.stdin.write(data);
   // End data write
   scriptExecution.stdin.end();
 }
 
+
 function dataToPyBoth(fileName) {
-  //var scriptExecution = spawn("python.exe", ['./python/nodelink2.py']);
   var scriptExecution = spawn("python.exe", ['./python/NLD_and_AM.py']);
   // Handle normal output
   scriptExecution.stdout.on('data', (data) => {
      pythonOutput = String.fromCharCode.apply(null, data);
+	 console.log(pythonOutput)
   });
 
-  // Write data (remember to send only strings or numbers, otherwhise python wont understand)
+  // Write data (remember to send only strings or numbers, otherwise python wont understand)
   var data = JSON.stringify([fileName]);
   scriptExecution.stdin.write(data);
   // End data write
   scriptExecution.stdin.end();
 }
 
+
 function showStatistics(fileName) {
   fileNameWithNoExtension = fileName.slice(0, -4)
-  //var scriptExecution = spawn("python.exe", ['./python/nodelink2.py']);
   var scriptExecution = spawn("python.exe", ['./python/DBL_stat.py']);
   // Handle normal output
   scriptExecution.stdout.on('data', (data) => {
@@ -79,7 +79,7 @@ function showStatistics(fileName) {
   });
 
   scriptExecution.stdout.on('data', function(data) {
-    statOutput += data;
+    statOutput = data;
   })
 
   scriptExecution.on('close', function() {
@@ -89,12 +89,13 @@ function showStatistics(fileName) {
     console.log('File is created successfully.');
   })  })
 
-  // Write data (remember to send only strings or numbers, otherwhise python wont understand)
+  // Write data (remember to send only strings or numbers, otherwise python wont understand)
   var data = JSON.stringify([fileName]);
   scriptExecution.stdin.write(data);
   // End data write
   scriptExecution.stdin.end();
 }
+
 
 // Connect with the upload package
 app.use(upload())
@@ -168,7 +169,6 @@ app.get("/viewmatrix/choose/:id", function(req, res){
   res.redirect('/graphs/' + fileNameWithNoExtension + 'matrix.ejs')
   })
   dataToPyMatrix(fileName)
-  //res.redirect('/graphs/' + fileNameWithNoExtension + 'matrix.ejs')
 })
 
 app.get("/viewnodelink/choose/:id", function(req, res){
@@ -187,13 +187,10 @@ app.get("/viewboth/choose/:id", function(req, res){
   fileNameWithNoExtension = fileName.slice(0, -4)
   fs.writeFile('views/graphs/' + fileNameWithNoExtension + 'both.ejs', loading,function (err) {
     if (err) throw err;
-  //console.log('File is created successfully.');
   console.log('File is created successfully.');
   res.redirect('/graphs/' + fileNameWithNoExtension + 'both.ejs')
   })
   dataToPyBoth(fileName)
-
-  //res.redirect('/graphs/' + fileNameWithNoExtension + 'both.ejs')
 })
 
 app.get("/showstatistics/choose/:id", function(req, res){
