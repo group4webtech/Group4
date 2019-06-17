@@ -114,7 +114,9 @@ def NLD_pocessing_graph(g, weights, colors, layout):
 #   NLD_FD_processing_graph - ForceDirected
 ###############################################################################
 def NLD_FD_pocessing_graph(g, weights, colors, layout, degree_sequence):
-    my_points=nx.fruchterman_reingold_layout(g, iterations=100)
+    magicnumber = (g.number_of_nodes()/degree_sequence[0]**2)
+    r= 2.2/magicnumber
+    my_points=nx.fruchterman_reingold_layout(g, k = r, iterations=100)
     graph_fd = from_networkx(g, my_points)
 
     #posxy=nx.fruchterman_reingold_layout(g)
@@ -308,9 +310,9 @@ def NLD_processing(df):
 
     degree_sequence = sorted([d for n, d in g.degree()], reverse=True)
     magicnumber = (g.number_of_nodes()/degree_sequence[0]**2)
-    r = 1.1/magicnumber
-    my_points=nx.fruchterman_reingold_layout(g)
-    graph_fd = NLD_FD_pocessing_graph(g, weights, colors, nx.fruchterman_reingold_layout(g,k=r, iterations=100, pos=my_points, scale=1, center=(0,0)), degree_sequence)
+    r = 2.2/magicnumber
+    my_points=nx.fruchterman_reingold_layout(g, iterations=100)
+    graph_fd = NLD_FD_pocessing_graph(g, weights, colors, nx.fruchterman_reingold_layout(g,k=r, iterations=0, pos=my_points, scale=1, center=(0,0)), degree_sequence)
 
     NLD_add_tools(plot_fd)
 
