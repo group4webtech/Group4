@@ -325,7 +325,17 @@ def NLD_processing(df):
     plot_random = Plot(plot_width=NLD_width, plot_height=NLD_height,
                 x_range=Range1d(-0.1, 1.1), y_range=Range1d(-0.1, 1.1))
 
-    graph_random = NLD_FD_pocessing_graph(g, weights, colors, nx.random_layout, degree_sequence)
+    my_colors = []
+
+    layr=nx.random_layout(g)
+
+    for key, value in layr.items():
+        x = value[0] + 1.0 # x = -1 .. +1, so move to 0 ... 2
+        y = value[1] + 1.0 # y = -1 .. +1, so move to 0 ... 2
+        my_colors.append( "#%02x%02x%02x" % (int(50+100*x), int(30+100*y), 150) )
+
+
+    graph_random = NLD_FD_pocessing_graph(g, weights, colors, layr, degree_sequence)
 
     NLD_add_tools(plot_random)
 
