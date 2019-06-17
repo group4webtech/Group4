@@ -145,7 +145,7 @@ def AM_processing(df_AM):
     # alpha matrix
     plot_alpha = AM_processing_plot(names2, source, hover_am)
     plot_alpha.rect('xname', 'yname', 0.9, 0.9, source=source, line_color=None, hover_line_color='black', alpha = 'alphas')
-    
+
     #random matrix
     random_matrix = AM_processing_plot(names1, source, hover_am)
     random_matrix.rect('xname', 'yname', 0.9, 0.9, source=source, line_color=None, hover_line_color='black', fill_color={'field': 'count', 'transform': mapper})
@@ -164,10 +164,7 @@ def AM_processing(df_AM):
 #   NLD_processing_graph
 ###############################################################################
 def NLD_pocessing_graph(g, weights, colors, layout):
-    if layout != nx.random_layout:
-        graph = from_networkx(g, layout, scale=1, center=(0,0))
-    else:
-        graph = from_networkx(g, layout, center=(0,0))
+    graph = from_networkx(g, layout, scale=1, center=(0,0))
 
     # nodes and egdes attributes
     graph.node_renderer.data_source.data['degree'] = list(zip(*g.degree))[1]
@@ -190,11 +187,58 @@ def NLD_pocessing_graph(g, weights, colors, layout):
 
 
 ###############################################################################
+#   NLD_random_processing_graph
+###############################################################################
+def NLD_random_processing_graph(g, weights, colors, layout):
+    degree_sequence = sorted([d for n, d in g.degree()], reverse=True)
+
+    magicnumber = (g.number_of_nodes()/degree_sequence[0]**2)
+    r = 2.2/magicnumber
+    my_points=nx.random_layout(g)
+
+    graph = from_networkx(g, layout)
+
+    my_colors = []
+    for key, value in my_points.items():
+        x = value[0] + 1.0 # x = -1 .. +1, so move to 0 ... 2
+        y = value[1] + 1.0 # y = -1 .. +1, so move to 0 ... 2
+        my_colors.append( "#%02x%02x%02x" % (int(50+100*x), int(30+100*y), 150) )
+
+    # nodes and egdes attributes
+    graph.node_renderer.data_source.data['degree'] = list(zip(*g.degree))[1]
+    graph.node_renderer.data_source.data['degree2'] = [sqrt(x+6) for x in graph.node_renderer.data_source.data['degree']]
+    graph.node_renderer.data_source.data['nodessize'] = [x*115/(sqrt(g.number_of_nodes()+(np.mean(degree_sequence)))) for x in graph.node_renderer.data_source.data['degree2']]
+
+    graph.node_renderer.data_source.data['my_fill_color'] = my_colors
+    graph.edge_renderer.data_source.data['weight'] = weights
+    graph.edge_renderer.data_source.add(colors, 'color')
+
+    graph.node_renderer.glyph            = Circle(size ='nodesize',  fill_alpha=0.85, fill_color='my_fill_color')
+    graph.node_renderer.selection_glyph  = Circle(size=10, fill_alpha=0.8, fill_color='red')
+    graph.node_renderer.hover_glyph      = Circle(size=10, fill_alpha=0.8, fill_color='yellow')
+
+    graph.edge_renderer.glyph            = MultiLine(line_width=3, line_alpha=0.8, line_color='color')
+    graph.edge_renderer.selection_glyph  = MultiLine(line_width=4, line_alpha=0.8, line_color='red')
+    graph.edge_renderer.hover_glyph      = MultiLine(line_width=4, line_alpha=0.8, line_color='yellow')
+    graph.edge_renderer.glyph.line_width = {'field': 'weight'}
+
+    graph.selection_policy = NodesAndLinkedEdges()
+    graph.inspection_policy = NodesAndLinkedEdges()
+
+    return graph
+
+
+###############################################################################
 #   NLD_FD_processing_graph - ForceDirected
 ###############################################################################
-def NLD_FD_pocessing_graph(g, weights, colors, layout, degree_sequence):
-    my_points=nx.fruchterman_reingold_layout(g)
-    graph_fd = from_networkx(g, layout)
+def NLD_FD_pocessing_graph(g, weights, colors):
+    degree_sequence = sorted([d for n, d in g.degree()], reverse=True)
+
+    magicnumber = (g.number_of_nodes()/degree_sequence[0]**2)
+    r = 2.2/magicnumber
+    my_points=nx.fruchterman_reingold_layout(g, k = r, iterations=100)
+
+    graph_fd = from_networkx(g, my_points)
 
     #posxy=nx.fruchterman_reingold_layout(g)
     #for i in range(len(posxy()):
@@ -247,7 +291,7 @@ def NLD_add_tools(plot):
     plot.add_tools(LassoSelectTool())
     plot.add_tools(BoxZoomTool())
     # !!! Hover the node attributes !!!
-    node_hover = HoverTool(tooltips=[('Name', '@index'), ('Degree', '@degree'), #('Node Size', '@nodesize'),
+    node_hover = HoverTool(tooltips=[('Name', '@index'), ('Degree', '@degree'),
                                     ('Min Weight', '@minweight'), ('Max Weight', '@maxweight'),
                                     ('Average Weight', '@avrweight'), ('Sum Weight', '@sumweight')])
     plot.add_tools(node_hover)
@@ -355,6 +399,7 @@ def NLD_processing(df):
     color_mapper = LinearColorMapper(palette=color_palette, low=w_min, high=w_max)
     color_bar = ColorBar(color_mapper = color_mapper, border_line_color = None, location = (0,0))
 
+
     # circular layout
     plot_circle = Plot(plot_width=NLD_width, plot_height=NLD_height,
                 x_range=Range1d(-1.1, 1.1), y_range=Range1d(-1.1, 1.1))
@@ -385,11 +430,7 @@ def NLD_processing(df):
     plot_fd = Plot(plot_width=NLD_width, plot_height=NLD_height,
                 x_range=Range1d(-1.1, 1.1), y_range=Range1d(-1.1, 1.1))
 
-    degree_sequence = sorted([d for n, d in g.degree()], reverse=True)
-    magicnumber = (g.number_of_nodes()/degree_sequence[0]**2)
-    r = 1.1/magicnumber
-    my_points=nx.fruchterman_reingold_layout(g)
-    graph_fd = NLD_FD_pocessing_graph(g, weights, colors, nx.fruchterman_reingold_layout(g,k=r, iterations=100, pos=my_points, scale=1, center=(0,0)), degree_sequence)
+    graph_fd = NLD_FD_pocessing_graph(g, weights, colors)
 
     NLD_add_tools(plot_fd)
 
@@ -402,13 +443,14 @@ def NLD_processing(df):
     plot_random = Plot(plot_width=NLD_width, plot_height=NLD_height,
                 x_range=Range1d(-0.1, 1.1), y_range=Range1d(-0.1, 1.1))
 
-    graph_random = NLD_FD_pocessing_graph(g, weights, colors, nx.random_layout, degree_sequence)
+    graph_random = NLD_random_processing_graph(g, weights, colors, nx.random_layout)
 
     NLD_add_tools(plot_random)
 
     plot_random.add_layout(color_bar, 'right')
 
     plot_random.renderers.append(graph_random)
+
 
     # Create panels for each layout
     circle_panel = Panel(child=plot_circle, title='Circle layout')
@@ -440,8 +482,9 @@ def main():
     df_full = file_processing(filename)
 
     # subset dataframes
-#    df_subset = df_full.loc["Jim Thomas":"James Landay", "Jim Thomas":"James Landay"] # 50
-    df_subset = df_full.loc["Jim Thomas":"Chris Buckley", "Jim Thomas":"Chris Buckley"] # 100
+    df_subset = df_full.loc["Jim Thomas":"James Landay", "Jim Thomas":"James Landay"] # 50
+#    df_subset = df_full.loc["Jim Thomas":"Chris Buckley", "Jim Thomas":"Chris Buckley"] # 100
+#    df_subset = df_full.loc["Jim Thomas":"Carl Burnham", "Jim Thomas":"Carl Burnham"] # 250
 
     tabsAM = AM_processing(df_subset)
 

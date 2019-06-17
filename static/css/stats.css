@@ -1,0 +1,26 @@
+.stats {
+  background-color: white;
+  margin: auto;
+  display: inline;
+  width: 800px;
+  padding: 20px;
+  margin-top: 100px;
+  float: right;
+  border-radius: 10px;
+}
+
+h1 {
+  font-size: 25px;
+}
+
+.aboutthat {
+  background-color: white;
+  margin: auto;
+  display: inline;
+  width: 100%;
+  padding: 20px;
+  margin-top: 100px;
+  float: right;
+  border-radius: 10px;
+  color: black;
+}

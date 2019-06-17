@@ -8,6 +8,7 @@ var csv = require("fast-csv");
 // Python shell
 var ps = require('python-shell')
 var spawn = require('child_process').spawn;
+var exec = require('child_process').exec;
 // Generating unique id for the files
 var uniqid = require('uniqid');
 //compressing python output
@@ -15,7 +16,8 @@ var uniqid = require('uniqid');
 var pythonOutput = "";
 var fileNameTo = "";
 
-var loading = ''
+var loading = '<script>document.onchange = location.reload();</script>'
+var statOutput = ""
 
 function dataToPyMatrix(fileName) {
   //var scriptExecution = spawn("python.exe", ['./python/nodelink2.py']);
@@ -31,6 +33,7 @@ function dataToPyMatrix(fileName) {
   // End data write
   scriptExecution.stdin.end();
 }
+
 
 
 function dataToPyNodelink(fileName) {
@@ -64,6 +67,34 @@ function dataToPyBoth(fileName) {
   scriptExecution.stdin.end();
 }
 
+function showStatistics(fileName) {
+  fileNameWithNoExtension = fileName.slice(0, -4)
+  //var scriptExecution = spawn("python.exe", ['./python/nodelink2.py']);
+  var scriptExecution = spawn("python.exe", ['./python/DBL_stat.py']);
+  // Handle normal output
+  scriptExecution.stdout.on('data', (data) => {
+     pythonOutput = String.fromCharCode.apply(null, data);
+     console.log(pythonOutput)
+     statOutput = pythonOutput
+  });
+
+  scriptExecution.stdout.on('data', function(data) {
+    statOutput += data;
+  })
+
+  scriptExecution.on('close', function() {
+    console.log(statOutput)
+    fs.writeFile('views/graphs/' + fileNameWithNoExtension + 'statistics.ejs', loading,function (err) {
+      if (err) throw err;
+    console.log('File is created successfully.');
+  })  })
+
+  // Write data (remember to send only strings or numbers, otherwhise python wont understand)
+  var data = JSON.stringify([fileName]);
+  scriptExecution.stdin.write(data);
+  // End data write
+  scriptExecution.stdin.end();
+}
 
 // Connect with the upload package
 app.use(upload())
@@ -163,6 +194,33 @@ app.get("/viewboth/choose/:id", function(req, res){
   dataToPyBoth(fileName)
 
   //res.redirect('/graphs/' + fileNameWithNoExtension + 'both.ejs')
+})
+
+app.get("/showstatistics/choose/:id", function(req, res){
+  fileName = req.params.id
+  fileNameWithNoExtension = fileName.slice(0, -4)
+  fs.writeFile('views/graphs/' + fileNameWithNoExtension + 'statistics.ejs', loading,function (err) {
+    if (err) throw err;
+  console.log('File is created successfully.');
+})
+  showStatistics(fileName)
+  console.log(statOutput)
+  res.redirect('showstatistics/' + fileNameWithNoExtension)
+})
+
+var stat1 = '<% include ../partials/header %><nav><a href=""><img src="../img/logoWhite.png" alt="logo"></a><div id="nav-rightside"><ul><li><a href="/">Home</a></li><li><a href="about">About</a></li></ul><a href="upload" id="uploadBtn">Upload Dataset</a></div></nav><div class="stats"><h1 class="title-is-1">Statistics</h1><p>'
+var stat2 = '</p></div></body></html>'
+
+app.get("/showstatistics/choose/showstatistics/:id", function(req, res) {
+  var fln = req.params.id
+  var full = stat1 + statOutput + stat2
+  console.log(statOutput)
+  fs.writeFileSync('views/graphs/' + fln + 'statistics.ejs', full);
+  res.render("graphs/" + fln + "statistics.ejs")
+})
+
+app.get("/statistics", function(req, res) {
+  res.render("statistics")
 })
 
 app.get("/choose/:id", function(req, res) {

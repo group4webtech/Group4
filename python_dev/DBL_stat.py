@@ -24,17 +24,6 @@ output_file('indexstat.html')
 filename = ''
 file = ''
 
-stat_average_weigth = ''
-stat_lowest_weigth = ''
-stat_max_possible_edges = ''
-stat_total_edges = ''
-stat_sparce_percentage_of_dataset = ''
-stat_total_nodes = ''
-stat_average_degree = ''
-stat_highest_degree = ''
-stat_highest_degree_person = ''
-stat_highest_weigth = ''
-stat_highest_weigth_persons = ''
 
 ###############################################################################
 #   Read data from stdin
@@ -99,17 +88,6 @@ def file_processing(filename):
 def main():
     global filename, file
 
-    global stat_average_weigth
-    global stat_lowest_weigth
-    global stat_max_possible_edges
-    global stat_total_edges
-    global stat_sparce_percentage_of_dataset
-    global stat_total_nodes
-    global stat_average_degree
-    global stat_highest_degree
-    global stat_highest_degree_person
-    global stat_highest_weigth
-    global stat_highest_weigth_persons
 
     #get our data as an array from read_in()
 #    lines = read_in()
@@ -125,6 +103,9 @@ def main():
     df_full = file_processing(filename)
 
     # subset dataframes
+#   df = df_full.loc["Jim Thomas":"James Landay", "Jim Thomas":"James Landay"] # 50
+#    df_subset = df_full.loc["Jim Thomas":"Chris Buckley", "Jim Thomas":"Chris Buckley"] # 100
+#    df_subset = df_full.loc["Jim Thomas":"Carl Burnham", "Jim Thomas":"Carl Burnham"] # 250
     df = df_full
 
     # get original column names from df
@@ -165,35 +146,35 @@ def main():
 
     # average weigth of an edge
     stat_average_weigth = ((int)(sum(weights) * 10000 / len(weights))) / 100
-    print("average weigth of an edge: ",  stat_average_weigth)
+#    print("average weigth of an edge: ",  stat_average_weigth)
 
     # minimum weigth of an edge
     stat_lowest_weigth = min(weights)
-    print("minimum weigth of an edge: ", stat_lowest_weigth)
+#    print("minimum weigth of an edge: ", stat_lowest_weigth)
 
     # maximum possible number of edges
     stat_max_possible_edges = len(g.nodes) * len(g.nodes)
-    print("maximum possible number of edges: ", stat_max_possible_edges)
+#    print("maximum possible number of edges: ", stat_max_possible_edges)
 
     # total number of edges
     stat_total_edges = len(g.edges)
-    print("total number of edges: ", stat_total_edges)
+#    print("total number of edges: ", stat_total_edges)
 
     # sparce percentage of dataset
     stat_sparce_percentage_of_dataset = ((int)(stat_total_edges * 10000 / stat_max_possible_edges)) / 100
-    print("sparce percentage of dataset: ", stat_sparce_percentage_of_dataset)
+#    print("sparce percentage of dataset: ", stat_sparce_percentage_of_dataset)
 
     # total number of nodes
     stat_total_nodes = len(g.nodes)
-    print("total number of nodes: ", stat_total_nodes)
+#    print("total number of nodes: ", stat_total_nodes)
 
     # average node degree
     stat_average_degree = (int)(sum(list(list(zip(*g.degree))[1])) / len(g.nodes))
-    print("average node degree: ", stat_average_degree)
+#    print("average node degree: ", stat_average_degree)
 
     # lowest node degree
     stat_lowest_degree = min(list(list(zip(*g.degree))[1]))
-    print("lowest node degree: ", stat_lowest_degree)
+#    print("lowest node degree: ", stat_lowest_degree)
 
     # create a dictoinary with double for loop
     mapping = {old_label:new_label for old_label, new_label in itertools.zip_longest(sorted(g.nodes()), list_columns_names, fillvalue=1)}
@@ -204,7 +185,7 @@ def main():
 
     # highest node degree - for person' 'X'
     stat_highest_degree = max(list(list(zip(*g.degree))[1]))
-    print("highest node degree: ", stat_highest_degree)
+#    print("highest node degree: ", stat_highest_degree)
 
     i = 0
     curent_max_degree = list(list(zip(*g.degree))[1])[i]
@@ -215,20 +196,31 @@ def main():
             curent_max_degree_index = i
         i += 1
     stat_highest_degree = curent_max_degree
-    print("highest node degree2: ", stat_highest_degree)
+#    print("highest node degree2: ", stat_highest_degree)
     stat_highest_degree_person = list(list(zip(*g.degree))[0])[curent_max_degree_index]
-    print(stat_highest_degree_person)
+#    print(stat_highest_degree_person)
 
 
     # maximum weigth of an edge - between persons 'u' and 'v'
     stat_highest_weigth = max(weights)
-    print("maximum weigth of an edge: ", stat_highest_weigth)
+#    print("maximum weidth of an edge: ", stat_highest_weigth)
 
+    stat_highest_weigth_persons = ''
     for u,v,d in g.edges(data=True):
         if (d['weight'] == stat_highest_weigth):
-            stat_highest_weigth_persons = u + ", " + v
-            print(stat_highest_weigth_persons)
+            stat_highest_weigth_persons = "'" + u + "' and '" + v + "'"
+#            print(stat_highest_weigth_persons)
 
+    print("The data has {} nodes.<br/>".format(stat_total_nodes))
+    print("The matrix is of size {}x{}={}.<br/>".format(stat_total_nodes, stat_total_nodes, stat_max_possible_edges))
+    print("There are only {} links.<br/>".format(stat_total_edges))
+    print("The sparce percentage of the matrix is {}%.<br/>".format(stat_sparce_percentage_of_dataset))
+    print("The average value of a link is {}.<br/>".format(stat_average_weigth))
+    print("The lowest value of a link is {}.<br/>".format(stat_lowest_weigth))
+    print("The highest value of a link is {}, which is between {}.<br/>".format(stat_highest_weigth, stat_highest_weigth_persons))
+    print("The average number of connections a node has is {}.<br/>".format(stat_average_degree))
+    print("The lowest number of connections a node has is {}.<br/>".format(stat_lowest_degree))
+    print("'{}' is the node with highest number of connections, which is {}.<br/><br/>".format(stat_highest_degree_person, stat_highest_degree))
 
 ##############################################################################
 #   Start process
