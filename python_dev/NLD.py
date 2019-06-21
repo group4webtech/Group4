@@ -96,9 +96,9 @@ def NLD_pocessing_graph(g, weights, colors, layout):
     graph.node_renderer.selection_glyph  = Circle(size=10, fill_alpha=0.8, fill_color='red')
     graph.node_renderer.hover_glyph      = Circle(size=10, fill_alpha=0.8, fill_color='yellow')
 
-    graph.edge_renderer.glyph            = MultiLine(line_width=3, line_alpha=0.8, line_color='color')
-    graph.edge_renderer.selection_glyph  = MultiLine(line_width=4, line_alpha=0.8, line_color='red')
-    graph.edge_renderer.hover_glyph      = MultiLine(line_width=4, line_alpha=0.8, line_color='yellow')
+    graph.edge_renderer.glyph            = MultiLine(line_width=2.5, line_alpha=0.8, line_color='color')
+    graph.edge_renderer.selection_glyph  = MultiLine(line_width=2.5, line_alpha=0.8, line_color='red')
+    graph.edge_renderer.hover_glyph      = MultiLine(line_width=2.5, line_alpha=0.8, line_color='yellow')
     graph.edge_renderer.glyph.line_width = {'field': 'weight'}
 
     graph.selection_policy = NodesAndLinkedEdges()
@@ -138,9 +138,9 @@ def NLD_random_processing_graph(g, weights, colors, layout):
     graph.node_renderer.selection_glyph  = Circle(size=10, fill_alpha=0.8, fill_color='red')
     graph.node_renderer.hover_glyph      = Circle(size=10, fill_alpha=0.8, fill_color='yellow')
 
-    graph.edge_renderer.glyph            = MultiLine(line_width=3, line_alpha=0.8, line_color='color')
-    graph.edge_renderer.selection_glyph  = MultiLine(line_width=4, line_alpha=0.8, line_color='red')
-    graph.edge_renderer.hover_glyph      = MultiLine(line_width=4, line_alpha=0.8, line_color='yellow')
+    graph.edge_renderer.glyph            = MultiLine(line_width=2.5, line_alpha=0.8, line_color='color')
+    graph.edge_renderer.selection_glyph  = MultiLine(line_width=2.5, line_alpha=0.8, line_color='red')
+    graph.edge_renderer.hover_glyph      = MultiLine(line_width=2.5, line_alpha=0.8, line_color='yellow')
     graph.edge_renderer.glyph.line_width = {'field': 'weight'}
 
     graph.selection_policy = NodesAndLinkedEdges()
@@ -184,9 +184,9 @@ def NLD_FD_pocessing_graph(g, weights, colors):
     graph_fd.node_renderer.selection_glyph  = Circle(size=15, fill_alpha=0.8, fill_color='red')
     graph_fd.node_renderer.hover_glyph      = Circle(size=15, fill_alpha=0.8, fill_color='yellow')
 
-    graph_fd.edge_renderer.glyph            = MultiLine(line_width=3, line_alpha=0.8, line_color='color')
-    graph_fd.edge_renderer.selection_glyph  = MultiLine(line_width=4, line_alpha=0.8, line_color='red')
-    graph_fd.edge_renderer.hover_glyph      = MultiLine(line_width=4, line_alpha=0.8, line_color='yellow')
+    graph_fd.edge_renderer.glyph            = MultiLine(line_width=2.5, line_alpha=0.8, line_color='color')
+    graph_fd.edge_renderer.selection_glyph  = MultiLine(line_width=2.5, line_alpha=0.8, line_color='red')
+    graph_fd.edge_renderer.hover_glyph      = MultiLine(line_width=2.5, line_alpha=0.8, line_color='yellow')
     graph_fd.edge_renderer.glyph.line_width = {'field': 'weight'}
 
     graph_fd.selection_policy = NodesAndLinkedEdges()
@@ -403,7 +403,8 @@ def main():
     df_full = file_processing(filename)
 
     # subset dataframes
-    df_subset = df_full.loc["Jim Thomas":"James Landay", "Jim Thomas":"James Landay"] # 50
+    df_subset = df_full
+#    df_subset = df_full.loc["Jim Thomas":"James Landay", "Jim Thomas":"James Landay"] # 50
 #    df_subset = df_full.loc["Jim Thomas":"Chris Buckley", "Jim Thomas":"Chris Buckley"] # 100
 #    df_subset = df_full.loc["Jim Thomas":"Carl Burnham", "Jim Thomas":"Carl Burnham"] # 250
 

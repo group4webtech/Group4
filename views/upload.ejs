@@ -1,6 +1,7 @@
 <% include partials/header %>
+
   <nav>
-    <a href=""><img src="../img/logoWhite.png" alt="logo"></a>
+    <img src="../img/logoWhite.png" alt="logo">
     <div id="nav-rightside">
       <ul>
         <li><a href="/">Home</a></li>
@@ -13,8 +14,7 @@
 
   <div id="uploadForm">
     <img src="../img/uploadicon.png">
-    <h1 class="title is-3">Drag and drop files here</h1>
-    <p>or</p>
+    <h1 class="title is-3">Upload 'csv' file</h1>
     <button type="button" class="button is-link is-normal" id="custom-button">choose file</button> <span id=""></span>
     <form ref="uploadForm" action="/" method="post" enctype="multipart/form-data">
       <input type="file" name="csvFile" id="real-file" hidden="hidden">

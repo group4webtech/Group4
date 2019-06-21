@@ -8,18 +8,19 @@ from bokeh.models.graphs import from_networkx, NodesAndLinkedEdges, EdgesAndLink
 from bokeh.models.sources import ColumnDataSource, CDSView
 from bokeh.layouts import row, column, gridplot
 from bokeh.models.widgets import Tabs, Panel, MultiSelect, Select
-from bokeh.palettes import Spectral4, Spectral8, Viridis6, Viridis11
+from bokeh.palettes import Spectral4, Spectral8, Viridis6, Viridis11, Magma6
 from bokeh.plotting import figure, output_file, show
 import itertools
 from math import sqrt
-
+from sklearn.utils import shuffle
+import random
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 
 import sys, json
 import os
 
-output_file('indexnodelink.html')
+output_file('indexboth.html')
 
 filename = ''
 file = ''
@@ -82,6 +83,84 @@ def file_processing(filename):
 
 
 ###############################################################################
+#   AM_processing_plot
+###############################################################################
+def AM_processing_plot(names2, source, hover_am):
+    plot = figure(title="", x_axis_location="above", x_range=names2, y_range=list(reversed(names2)),toolbar_location = 'below')
+    plot.plot_width = 650
+    plot.plot_height = 650
+    plot.grid.grid_line_color = None
+    plot.axis.axis_line_color = None
+    plot.axis.major_tick_line_color = None
+    plot.axis.major_label_text_font_size = "5pt"
+    plot.axis.major_label_standoff = 0
+    plot.xaxis.major_label_orientation = np.pi/3
+    plot.add_tools(hover_am)
+    plot.add_tools(BoxSelectTool())
+
+    return plot
+
+
+###############################################################################
+#   AM_processing
+###############################################################################
+def AM_processing(df_AM):
+    max_value = df_AM.values.max()
+    min_value = df_AM.values.min()
+    values = df_AM.values
+    counts = values.astype(float)
+    #counts = df_AM.values
+    names  = df_AM.index.values.tolist()
+    names1 = df_AM.index.values.tolist()
+    names.extend(names1 * (len(names1) - 1))
+
+    def duplicate(names1, n):
+        return [ele for ele in names1 for _ in range(n)]
+    xname = duplicate(names1, len(names1))
+    yname = names
+
+    names2 = sorted(names1)
+    random.shuffle(names1)
+    alpha = []
+
+    for i, name in enumerate(names1):
+        for j, name1 in enumerate(names1):
+            alpha.append(min(counts[i, j]/4, 0.9) + 0.1)
+
+    dataAM=dict(xname=xname, yname=yname, count=counts, alphas=alpha)
+    source = ColumnDataSource(dataAM)
+
+    #select = Select(title="Filtering:", options=['Alphabetical', 'Length'])
+
+    hover_am = HoverTool(tooltips = [('Names', '@yname, @xname'), ('Value', '@count')])
+
+    # color matrix
+    color_palette = list(reversed(Viridis11[:8]))
+    mapper = LinearColorMapper(palette=color_palette, low=min_value, high=max_value)
+    color_bar = ColorBar(color_mapper = mapper, border_line_color = None, location = (0,0))
+    plot_color = AM_processing_plot(names2, source, hover_am)
+    plot_color.rect('xname', 'yname', 0.9, 0.9, source=source, line_color=None, hover_line_color='black', fill_color={'field': 'count', 'transform': mapper})
+    plot_color.add_layout(color_bar, 'right')
+
+    # alpha matrix
+    plot_alpha = AM_processing_plot(names2, source, hover_am)
+    plot_alpha.rect('xname', 'yname', 0.9, 0.9, source=source, line_color=None, hover_line_color='black', alpha = 'alphas')
+
+    #random matrix
+    random_matrix = AM_processing_plot(names1, source, hover_am)
+    random_matrix.rect('xname', 'yname', 0.9, 0.9, source=source, line_color=None, hover_line_color='black', fill_color={'field': 'count', 'transform': mapper})
+    random_matrix.add_layout(color_bar, 'right')
+
+    alpha_panel = Panel(child = plot_alpha, title = 'Alpha model')
+    color_panel = Panel(child = plot_color, title = 'Color model')
+    random_panel = Panel(child = random_matrix, title = 'Random model')
+
+    # Assign the AM panels to Tabs
+    tabsAM_int = Tabs(tabs=[alpha_panel, color_panel, random_panel])
+    return tabsAM_int
+
+
+###############################################################################
 #   NLD_processing_graph
 ###############################################################################
 def NLD_pocessing_graph(g, weights, colors, layout):
@@ -96,9 +175,9 @@ def NLD_pocessing_graph(g, weights, colors, layout):
     graph.node_renderer.selection_glyph  = Circle(size=10, fill_alpha=0.8, fill_color='red')
     graph.node_renderer.hover_glyph      = Circle(size=10, fill_alpha=0.8, fill_color='yellow')
 
-    graph.edge_renderer.glyph            = MultiLine(line_width=2.5, line_alpha=0.8, line_color='color')
-    graph.edge_renderer.selection_glyph  = MultiLine(line_width=2.5, line_alpha=0.8, line_color='red')
-    graph.edge_renderer.hover_glyph      = MultiLine(line_width=2.5, line_alpha=0.8, line_color='yellow')
+    graph.edge_renderer.glyph            = MultiLine(line_width=3, line_alpha=0.8, line_color='color')
+    graph.edge_renderer.selection_glyph  = MultiLine(line_width=4, line_alpha=0.8, line_color='red')
+    graph.edge_renderer.hover_glyph      = MultiLine(line_width=4, line_alpha=0.8, line_color='yellow')
     graph.edge_renderer.glyph.line_width = {'field': 'weight'}
 
     graph.selection_policy = NodesAndLinkedEdges()
@@ -138,9 +217,9 @@ def NLD_random_processing_graph(g, weights, colors, layout):
     graph.node_renderer.selection_glyph  = Circle(size=10, fill_alpha=0.8, fill_color='red')
     graph.node_renderer.hover_glyph      = Circle(size=10, fill_alpha=0.8, fill_color='yellow')
 
-    graph.edge_renderer.glyph            = MultiLine(line_width=2.5, line_alpha=0.8, line_color='color')
-    graph.edge_renderer.selection_glyph  = MultiLine(line_width=2.5, line_alpha=0.8, line_color='red')
-    graph.edge_renderer.hover_glyph      = MultiLine(line_width=2.5, line_alpha=0.8, line_color='yellow')
+    graph.edge_renderer.glyph            = MultiLine(line_width=3, line_alpha=0.8, line_color='color')
+    graph.edge_renderer.selection_glyph  = MultiLine(line_width=4, line_alpha=0.8, line_color='red')
+    graph.edge_renderer.hover_glyph      = MultiLine(line_width=4, line_alpha=0.8, line_color='yellow')
     graph.edge_renderer.glyph.line_width = {'field': 'weight'}
 
     graph.selection_policy = NodesAndLinkedEdges()
@@ -184,9 +263,9 @@ def NLD_FD_pocessing_graph(g, weights, colors):
     graph_fd.node_renderer.selection_glyph  = Circle(size=15, fill_alpha=0.8, fill_color='red')
     graph_fd.node_renderer.hover_glyph      = Circle(size=15, fill_alpha=0.8, fill_color='yellow')
 
-    graph_fd.edge_renderer.glyph            = MultiLine(line_width=2.5, line_alpha=0.8, line_color='color')
-    graph_fd.edge_renderer.selection_glyph  = MultiLine(line_width=2.5, line_alpha=0.8, line_color='red')
-    graph_fd.edge_renderer.hover_glyph      = MultiLine(line_width=2.5, line_alpha=0.8, line_color='yellow')
+    graph_fd.edge_renderer.glyph            = MultiLine(line_width=3, line_alpha=0.8, line_color='color')
+    graph_fd.edge_renderer.selection_glyph  = MultiLine(line_width=4, line_alpha=0.8, line_color='red')
+    graph_fd.edge_renderer.hover_glyph      = MultiLine(line_width=4, line_alpha=0.8, line_color='yellow')
     graph_fd.edge_renderer.glyph.line_width = {'field': 'weight'}
 
     graph_fd.selection_policy = NodesAndLinkedEdges()
@@ -314,7 +393,7 @@ def NLD_processing(df):
 
 
     # Organize common layouts' size for NLD
-    NLD_width  = 780
+    NLD_width  = 730
     NLD_height = 690
 
     color_mapper = LinearColorMapper(palette=color_palette, low=w_min, high=w_max)
@@ -390,28 +469,32 @@ def NLD_processing(df):
 def main():
     global filename, file
     #get our data as an array from read_in()
-    lines = read_in()
+ #   lines = read_in()
 
     # Sum  of all the items in the providen array
     #total_sum_inArray = 0
-    filename = "./upload/" + lines[0]
-#    filename = "DBL.csv"
-    file = lines[0]
+#    filename = "./upload/" + lines[0]
+    filename = "DBL.csv"
+#    file = lines[0]
 #    print(filename)
     #return the sum to the output stream
 
     df_full = file_processing(filename)
 
     # subset dataframes
-    df_subset = df_full
+#    df_subset = df_full
 #    df_subset = df_full.loc["Jim Thomas":"James Landay", "Jim Thomas":"James Landay"] # 50
 #    df_subset = df_full.loc["Jim Thomas":"Chris Buckley", "Jim Thomas":"Chris Buckley"] # 100
-#    df_subset = df_full.loc["Jim Thomas":"Carl Burnham", "Jim Thomas":"Carl Burnham"] # 250
+    df_subset = df_full.loc["Jim Thomas":"Carl Burnham", "Jim Thomas":"Carl Burnham"] # 250
+
+    tabsAM = AM_processing(df_subset)
 
     tabsNLD = NLD_processing(df_subset)
 
+    grid = gridplot([[tabsNLD, tabsAM]])
+
     # Show the tabbed layout
-    show(tabsNLD)
+    show(grid)
 
 ##############################################################################
 #   Start process
@@ -421,7 +504,7 @@ if __name__ == '__main__':
 
 
 # Fetch the html file
-response = urlopen('file://indexnodelink.html')
+response = urlopen('file://indexboth.html')
 html_output = response.read()
 
 # Parse the html file

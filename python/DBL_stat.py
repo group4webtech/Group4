@@ -103,10 +103,10 @@ def main():
     df_full = file_processing(filename)
 
     # subset dataframes
-#   df = df_full.loc["Jim Thomas":"James Landay", "Jim Thomas":"James Landay"] # 50
-#    df_subset = df_full.loc["Jim Thomas":"Chris Buckley", "Jim Thomas":"Chris Buckley"] # 100
-#    df_subset = df_full.loc["Jim Thomas":"Carl Burnham", "Jim Thomas":"Carl Burnham"] # 250
     df = df_full
+#    df = df_full.loc["Jim Thomas":"James Landay", "Jim Thomas":"James Landay"] # 50
+#    df = df_full.loc["Jim Thomas":"Chris Buckley", "Jim Thomas":"Chris Buckley"] # 100
+#    df = df_full.loc["Jim Thomas":"Carl Burnham", "Jim Thomas":"Carl Burnham"] # 250
 
     # get original column names from df
     list_columns_names = df.columns
@@ -214,7 +214,7 @@ def main():
     print("The data has {} nodes.<br/>".format(stat_total_nodes))
     print("The matrix is of size {}x{}={}.<br/>".format(stat_total_nodes, stat_total_nodes, stat_max_possible_edges))
     print("There are only {} links.<br/>".format(stat_total_edges))
-    print("The sparce percentage of the matrix is {}%.<br/>".format(stat_sparce_percentage_of_dataset))
+    print("The sparse percentage of the matrix is {}%.<br/>".format(stat_sparce_percentage_of_dataset))
     print("The average value of a link is {}.<br/>".format(stat_average_weigth))
     print("The lowest value of a link is {}.<br/>".format(stat_lowest_weigth))
     print("The highest value of a link is {}, which is between {}.<br/>".format(stat_highest_weigth, stat_highest_weigth_persons))

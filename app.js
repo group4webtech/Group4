@@ -205,7 +205,7 @@ app.get("/showstatistics/choose/:id", function(req, res){
   res.redirect('showstatistics/' + fileNameWithNoExtension)
 })
 
-var stat1 = '<% include ../partials/header %><nav><a href=""><img src="../img/logoWhite.png" alt="logo"></a><div id="nav-rightside"><ul><li><a href="/">Home</a></li><li><a href="about">About</a></li></ul><a href="upload" id="uploadBtn">Upload Dataset</a></div></nav><div class="stats"><h1 class="title-is-1">Statistics</h1><p>'
+var stat1 = '<% include ../partials/header %><nav><img src="../../../img/logoWhite.png" alt="logo"/><div id="nav-rightside"><ul><li><a href="/">Home</a></li><li><a href="../../../about">About</a></li></ul><a href="../../../upload" id="uploadBtn">Upload Dataset</a></div></nav><div class="stats"><h1 class="title-is-1" align="center">Basic Statistics of uploaded file</h1><br/><p>'
 var stat2 = '</p></div></body></html>'
 
 app.get("/showstatistics/choose/showstatistics/:id", function(req, res) {

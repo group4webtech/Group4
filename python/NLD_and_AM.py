@@ -482,13 +482,14 @@ def main():
     df_full = file_processing(filename)
 
     # subset dataframes
-    df_subset = df_full.loc["Jim Thomas":"James Landay", "Jim Thomas":"James Landay"] # 50
-#    df_subset = df_full.loc["Jim Thomas":"Chris Buckley", "Jim Thomas":"Chris Buckley"] # 100
+#    df_subset = df_full
+#    df_subset = df_full.loc["Jim Thomas":"James Landay", "Jim Thomas":"James Landay"] # 50
+    df_subset = df_full.loc["Jim Thomas":"Chris Buckley", "Jim Thomas":"Chris Buckley"] # 100
 #    df_subset = df_full.loc["Jim Thomas":"Carl Burnham", "Jim Thomas":"Carl Burnham"] # 250
 
     tabsAM = AM_processing(df_subset)
 
-    tabsNLD = NLD_processing(df_subset)
+    tabsNLD = NLD_processing(df_full)
 
     grid = gridplot([[tabsNLD, tabsAM]])
 
